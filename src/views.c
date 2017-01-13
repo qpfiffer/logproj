@@ -33,12 +33,12 @@ int api_create_user(const http_request *request, http_response *response) {
 	const unsigned char *full_body = request->full_body;
 	JSON_Value *body_string = json_parse_string((const char *)full_body);
 	if (!body_string)
-		return _api_failure(response, ctext, "Bad JSON.");
+		return _api_failure(response, ctext, "Could not parse JSON object.");
 
 	JSON_Object *new_user_object = json_value_get_object(body_string);
 	if (!new_user_object) {
 		json_value_free(body_string);
-		return _api_failure(response, ctext, "Bad JSON.");
+		return _api_failure(response, ctext, "Could not get object from JSON.");
 	}
 
 	const char *email_address = json_object_get_string(new_user_object, "email_address");
