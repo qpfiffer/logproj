@@ -17,3 +17,4 @@ static const struct db_conn oleg_conn = {
 /* User get/set methods */
 struct user *get_user(const char email_address[static 128], char out_key[static MAX_KEY_SIZE]);
 int set_user(const struct user *user);
+int insert_user(const char email_address[static 128], const char password[static SCRYPT_MCF_LEN]);

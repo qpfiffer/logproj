@@ -36,10 +36,9 @@ int set_image(const user *user) {
 	return ret;
 }
 
-int insert_image(const char email_address[static 128], const char password[static 64], const char salt[static 64]) {
+int insert_user(const char email_address[static 128], const char password[static 128]) {
 	(void)email_address;
 	(void)password;
-	(void)salt;
 
 	return -1;
 }

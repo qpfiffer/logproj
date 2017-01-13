@@ -1,2 +1,2 @@
-{"success": xXx @SUCCESS xXx, "error": xXx @ERROR xXx, "data": xXx @DATA xXx}
+{"success": xXx @SUCCESS xXx, "error": "xXx @ERROR xXx", "data": xXx @DATA xXx}
 
