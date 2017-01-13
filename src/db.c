@@ -40,7 +40,7 @@ int insert_user(const char email_address[static 128], const char password[static
 	(void)email_address;
 	(void)password;
 
-	return -1;
+	return 0;
 }
 
 /*
