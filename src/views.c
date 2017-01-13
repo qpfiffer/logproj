@@ -6,3 +6,9 @@ int index_handler(const http_request *request, http_response *response) {
 	greshunkel_ctext *ctext = gshkl_init_context();
 	return render_file(ctext, "./templates/index.html", response);
 }
+
+int static_handler(const http_request *request, http_response *response) {
+	/* Remove the leading slash: */
+	const char *file_path = request->resource + sizeof(char);
+	return mmap_file(file_path, response);
+}

@@ -1,0 +1,21 @@
+/* vim: set ts=4 sw=4 noet : */
+html, body {
+	font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+}
+code {
+	font-family: Consolas,monaco,"Ubuntu Mono",courier,monospace!important;
+	font-size: .95rem;
+	line-height: .95rem;
+	white-space: normal;
+	color: #72DEC2;
+	padding: 1px 3px;
+	-webkit-font-variant-ligatures: none;
+	font-variant-ligatures: none;
+	tab-size: 4;
+	-moz-tab-size: 4;
+	-o-tab-size: 4;
+	-webkit-tab-size: 4;
+	background-color: #f7f7f9;
+	border: 1px solid #e1e1e8;
+	border-radius: 3px;
+}

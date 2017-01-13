@@ -7,6 +7,7 @@
 int main_sock_fd;
 
 static const route all_routes[] = {
+	{"GET", "generic_static", "^/static/[a-zA-Z0-9/_-]*\\.[a-zA-Z]*$", 0, &static_handler, &mmap_cleanup},
 	{"GET", "root_handler", "^/$", 0, &index_handler, &heap_cleanup},
 };
 
