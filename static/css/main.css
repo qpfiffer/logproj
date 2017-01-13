@@ -35,3 +35,32 @@ button {
 	transition: all 0.3s ease;
 	outline: none;
 }
+
+button:hover {
+	background-color: #72DEC2;
+	color: #FFF;
+	background: solid;
+	border: 1px solid #72DEC2;
+}
+
+input, textarea {
+	line-height: 1.5;
+	margin: 0;
+	height: 2.1em;
+	padding: .3em .6em;
+	border: 1px solid #ccc;
+	background: #fff;
+	border-radius: .2em;
+	transition: all 0.3s;
+	width: 100%;
+}
+
+input:focus, textarea:focus {
+	border: 1px solid #72DEC2;
+	color: #72DEC2;
+	outline: none;
+}
+
+form input {
+	margin-bottom: 1em;
+}
