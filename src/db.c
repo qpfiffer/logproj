@@ -36,6 +36,14 @@ int set_image(const user *user) {
 	return ret;
 }
 
+int insert_image(const char email_address[static 128], const char password[static 64], const char salt[static 64]) {
+	(void)email_address;
+	(void)password;
+	(void)salt;
+
+	return -1;
+}
+
 /*
 static int insert(const char *file_path, const char filename[static MAX_IMAGE_FILENAME_SIZE], 
 						const char image_hash[static HASH_IMAGE_STR_SIZE], const char board[static MAX_BOARD_NAME_SIZE],

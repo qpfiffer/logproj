@@ -18,6 +18,13 @@ int static_handler(const http_request *request, http_response *response) {
 int api_create_user(const http_request *request, http_response *response) {
 	(void)request;
 
+	/* 1. Check DB for user
+	 * 2. Create salt
+	 * 3. Create hash
+	 * 4. Call insert function
+	 * 5. Return result
+	 */
+
 	greshunkel_ctext *ctext = gshkl_init_context();
 	gshkl_add_string(ctext, "SUCCESS", "true");
 	gshkl_add_string(ctext, "ERROR", "[]");

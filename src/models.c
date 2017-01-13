@@ -20,6 +20,7 @@ char *serialize_user(const user *to_serialize) {
 	char *serialized_string = NULL;
 
 	json_object_set_string(root_object, "email_address", to_serialize->email_address);
+	json_object_set_string(root_object, "password", to_serialize->email_address);
 	json_object_set_number(root_object, "created_at", to_serialize->created_at);
 
 	serialized_string = json_serialize_to_string(root_value);
@@ -36,6 +37,7 @@ user *deserialize_user(const char *json) {
 	JSON_Object *user_object = json_value_get_object(serialized);
 
 	strncpy(to_return->email_address, json_object_get_string(user_object, "email_address"), sizeof(to_return->email_address));
+	strncpy(to_return->password, json_object_get_string(user_object, "password"), sizeof(to_return->password));
 
 	to_return->created_at = (time_t)json_object_get_number(user_object, "created_at");
 
