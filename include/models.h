@@ -13,11 +13,8 @@ typedef struct user {
 	char email_address[128];
 	unsigned char _null_term_hax_1;
 
-	char password[64];
+	char password[128];
 	unsigned char _null_term_hax_2;
-
-	char salt[64];
-	unsigned char _null_term_hax_3;
 
 	time_t created_at;
 	size_t size;

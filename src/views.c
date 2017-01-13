@@ -19,10 +19,9 @@ int api_create_user(const http_request *request, http_response *response) {
 	(void)request;
 
 	/* 1. Check DB for user
-	 * 2. Create salt
-	 * 3. Create hash
-	 * 4. Call insert function
-	 * 5. Return result
+	 * 2. Use libscrypt_hash
+	 * 3. Insert user
+	 * 4. Store result
 	 */
 
 	greshunkel_ctext *ctext = gshkl_init_context();
