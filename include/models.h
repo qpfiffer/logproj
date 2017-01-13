@@ -1,9 +1,10 @@
 // vim: noet ts=4 sw=4
 #pragma once
 #include <time.h>
-#include "common-defs.h"
 
 #include <38-moths/vector.h>
+
+#include "common-defs.h"
 
 /* The unsigned chars in the struct are used to null terminate the
  * strings while still allowing us to use 'sizeof(webm.file_hash)'.

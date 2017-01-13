@@ -35,7 +35,9 @@ button {
 	transition: all 0.3s ease;
 	outline: none;
 }
-
+.error {
+	color: #FA3D58;
+}
 button:hover {
 	background-color: #72DEC2;
 	color: #FFF;

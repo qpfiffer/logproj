@@ -17,6 +17,10 @@ int static_handler(const http_request *request, http_response *response) {
 /* API HANDLERS */
 int api_create_user(const http_request *request, http_response *response) {
 	(void)request;
+
 	greshunkel_ctext *ctext = gshkl_init_context();
-	return render_file(ctext, "./templates/index.html", response);
+	gshkl_add_string(ctext, "SUCCESS", "true");
+	gshkl_add_string(ctext, "ERROR", "[]");
+	gshkl_add_string(ctext, "DATA", "{}");
+	return render_file(ctext, "./templates/response.json", response);
 }
