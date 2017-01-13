@@ -2,7 +2,7 @@ CFLAGS=-Werror -Wextra -Wall -O2 -g3
 INCLUDES=-pthread -I./include/
 LIBS=-lm -lrt -l38moths -loleg-http
 NAME=logproj
-COMMON_OBJ=views.o models.o
+COMMON_OBJ=db.o parson.o views.o models.o
 
 
 all: $(NAME)

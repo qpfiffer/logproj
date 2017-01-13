@@ -2,7 +2,7 @@
 html, body {
 	font-family: 'Open Sans', Helvetica, Arial, sans-serif;
 }
-code {
+a, code {
 	font-family: Consolas,monaco,"Ubuntu Mono",courier,monospace!important;
 	font-size: .95rem;
 	line-height: .95rem;
@@ -18,4 +18,20 @@ code {
 	background-color: #f7f7f9;
 	border: 1px solid #e1e1e8;
 	border-radius: 3px;
+}
+
+button {
+	height: 48px;
+	width: 180px;
+	text-align: center;
+	color: #72DEC2;
+	font-size: 1rem;
+	font-weight: 200;
+	background: transparent;
+	border: 1px solid #72DEC2;
+	border-radius: 4px;
+	margin: 20px 0;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	outline: none;
 }
