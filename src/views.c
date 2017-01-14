@@ -62,7 +62,7 @@ int api_create_user(const http_request *request, http_response *response) {
 		return _api_failure(response, ctext, "Could not hash password.");
 	}
 
-	if (!insert_user(email_address, password)) {
+	if (!insert_user(email_address, hash)) {
 		json_value_free(body_string);
 		return _api_failure(response, ctext, "Could not create user.");
 	}

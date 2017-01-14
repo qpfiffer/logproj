@@ -17,7 +17,6 @@ typedef struct user {
 	unsigned char _null_term_hax_2;
 
 	time_t created_at;
-	size_t size;
 } __attribute__((__packed__)) user;
 
 void create_user_key(const char email_address[static 128], char outbuf[static MAX_KEY_SIZE]);

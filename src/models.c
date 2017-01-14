@@ -20,7 +20,7 @@ char *serialize_user(const user *to_serialize) {
 	char *serialized_string = NULL;
 
 	json_object_set_string(root_object, "email_address", to_serialize->email_address);
-	json_object_set_string(root_object, "password", to_serialize->email_address);
+	json_object_set_string(root_object, "password", to_serialize->password);
 	json_object_set_number(root_object, "created_at", to_serialize->created_at);
 
 	serialized_string = json_serialize_to_string(root_value);

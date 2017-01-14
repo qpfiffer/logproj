@@ -23,7 +23,7 @@ user *get_user(const char email_address[static 128], char out_key[static MAX_KEY
 	return deserialized;
 }
 
-int set_image(const user *user) {
+int set_user(const user *user) {
 	char key[MAX_KEY_SIZE] = {0};
 	create_user_key(user->email_address, key);
 
@@ -37,10 +37,18 @@ int set_image(const user *user) {
 }
 
 int insert_user(const char email_address[static 128], const char password[static 128]) {
-	(void)email_address;
-	(void)password;
 
-	return 0;
+	user to_insert = {
+		.email_address = {0},
+		.password = {0},
+		.created_at = 0,
+	};
+	time(&to_insert.created_at);
+
+	memcpy(to_insert.email_address, email_address, sizeof(to_insert.email_address));
+	memcpy(to_insert.password, password, sizeof(to_insert.password));
+
+	return set_user(&to_insert);
 }
 
 /*
