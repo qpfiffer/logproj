@@ -7,3 +7,4 @@ int index_handler(const http_request *request, http_response *response);
 
 /* API handlers */
 int api_create_user(const http_request *request, http_response *response);
+int api_login_user(const http_request *request, http_response *response);
