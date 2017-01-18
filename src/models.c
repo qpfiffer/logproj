@@ -6,7 +6,7 @@
 #include "models.h"
 #include "parson.h"
 
-void create_user_key(const char email_address[static 128], char outbuf[static MAX_KEY_SIZE]) {
+void create_user_key(const char email_address[static EMAIL_CHAR_SIZE], char outbuf[static MAX_KEY_SIZE]) {
 	snprintf(outbuf, MAX_KEY_SIZE, "%s%c%s", USER_NMSPC, SEPERATOR, email_address);
 }
 
@@ -53,4 +53,43 @@ static unsigned int x_count(const char prefix[static MAX_KEY_SIZE]) {
 unsigned int user_count() {
 	char prefix[MAX_KEY_SIZE] = USER_NMSPC;
 	return x_count(prefix);
+}
+
+void create_session_key(const char uuid[static UUID_CHAR_SIZE], char outbuf[static MAX_KEY_SIZE]) {
+	snprintf(outbuf, MAX_KEY_SIZE, "%s%c%s", SESSION_NMSPC, SEPERATOR, uuid);
+}
+
+char *serialize_session(const session *to_serialize) {
+	if (!to_serialize)
+		return NULL;
+
+	JSON_Value *root_value = json_value_init_object();
+	JSON_Object *root_object = json_value_get_object(root_value);
+
+	char *serialized_string = NULL;
+
+	json_object_set_string(root_object, "uuid", to_serialize->uuid);
+	json_object_set_string(root_object, "user_key", to_serialize->user_key);
+	//json_object_set_string(root_object, "data", to_serialize->data);
+	//json_object_set_number(root_object, "dlen", to_serialize->dlen);
+
+	serialized_string = json_serialize_to_string(root_value);
+	json_value_free(root_value);
+	return serialized_string;
+}
+
+session *deserialize_session(const char *json) {
+	if (!json)
+		return NULL;
+
+	session *to_return = calloc(1, sizeof(session));
+
+	JSON_Value *serialized = json_parse_string(json);
+	JSON_Object *session_object = json_value_get_object(serialized);
+
+	strncpy(to_return->uuid, json_object_get_string(session_object, "uuid"), sizeof(to_return->uuid));
+	strncpy(to_return->user_key, json_object_get_string(session_object, "user_key"), sizeof(to_return->user_key));
+
+	json_value_free(serialized);
+	return to_return;
 }

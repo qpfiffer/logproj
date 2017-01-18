@@ -1,12 +1,15 @@
 // vim: noet ts=4 sw=4
 #include <stddef.h>
+#include <string.h>
 
 #include "common-defs.h"
 #include "db.h"
 #include "parson.h"
+#include "models.h"
 #include "views.h"
 
 int index_handler(const http_request *request, http_response *response) {
+	/* TODO: Redirect to app home if session exists. */
 	(void)request;
 	greshunkel_ctext *ctext = gshkl_init_context();
 	return render_file(ctext, "./templates/index.html", response);
@@ -22,6 +25,22 @@ static int _api_failure(http_response *response, greshunkel_ctext *ctext, const 
 	gshkl_add_string(ctext, "SUCCESS", "false");
 	gshkl_add_string(ctext, "ERROR", error);
 	gshkl_add_string(ctext, "DATA", "{}");
+	return render_file(ctext, "./templates/response.json", response);
+}
+int _log_user_in(const char user_key[static MAX_KEY_SIZE], const greshunkel_ctext *ctext, http_response *response) {
+	/* Creates a new session object for the specified user, and returns the right Set-Cookie
+	 * headers.
+	 */
+	/* We could also avoid a round-trip here. I don't care right now though. BREAK OLEG! */
+	insert_session(user_key);
+	session *session = get_session(user_key, NULL);
+	char uuid[UUID_CHAR_SIZE] = {0};
+
+	strncpy(uuid, session->uuid, sizeof(uuid));
+	free(session);
+
+	/* TODO: Set cookie. */
+
 	return render_file(ctext, "./templates/response.json", response);
 }
 
@@ -71,7 +90,8 @@ int api_create_user(const http_request *request, http_response *response) {
 	gshkl_add_string(ctext, "SUCCESS", "true");
 	gshkl_add_string(ctext, "ERROR", "[]");
 	gshkl_add_string(ctext, "DATA", "{}");
-	return render_file(ctext, "./templates/response.json", response);
+
+	return _log_user_in(user_key, ctext, response);
 }
 
 int api_login_user(const http_request *request, http_response *response) {

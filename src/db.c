@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <sys/time.h>
 #include <string.h>
+#include <uuid/uuid.h>
 
 #include <38-moths/logging.h>
 
@@ -37,7 +38,6 @@ int set_user(const user *user) {
 }
 
 int insert_user(const char email_address[static 128], const char password[static 128]) {
-
 	user to_insert = {
 		.email_address = {0},
 		.password = {0},
@@ -51,36 +51,56 @@ int insert_user(const char email_address[static 128], const char password[static
 	return set_user(&to_insert);
 }
 
-/*
-static int insert(const char *file_path, const char filename[static MAX_IMAGE_FILENAME_SIZE], 
-						const char image_hash[static HASH_IMAGE_STR_SIZE], const char board[static MAX_BOARD_NAME_SIZE],
-						const char post_key[MAX_KEY_SIZE]) {
-	time_t modified_time = get_file_creation_date(file_path);
-	if (modified_time == 0) {
-		log_msg(LOG_ERR, "IWMT: '%s' does not exist.", file_path);
-		return 0;
-	}
+session *get_session(const char uuid[static UUID_CHAR_SIZE], char out_key[static MAX_KEY_SIZE]) {
+	/* XXX: This should be resilient against namespace traversal
+	 * attacks. Don't blindly trust that what we get back is an actual user.
+	 */
+	create_session_key(uuid, out_key);
 
-	size_t size = get_file_size(file_path);
-	if (size == 0) {
-		log_msg(LOG_ERR, "IWFS: '%s' does not exist.", file_path);
-		return 0;
-	}
+	size_t json_size = 0;
+	char *json = (char *)fetch_data_from_db(&oleg_conn, out_key, &json_size);
+	/* log_msg(LOG_INFO, "Json from DB: %s", json); */
 
-	webm to_insert = {
-		.file_hash = {0},
-		.filename = {0},
-		.board = {0},
-		.created_at = modified_time,
-		.size = size,
-		.post = {0}
-	};
-	memcpy(to_insert.file_hash, image_hash, sizeof(to_insert.file_hash));
-	memcpy(to_insert.file_path, file_path, sizeof(to_insert.file_path));
-	memcpy(to_insert.filename, filename, sizeof(to_insert.filename));
-	memcpy(to_insert.board, board, sizeof(to_insert.board));
-	memcpy(to_insert.post, post_key, sizeof(to_insert.post));
+	if (json == NULL)
+		return NULL;
 
-	return set_image(&to_insert);
+	session *deserialized = deserialize_session(json);
+	free(json);
+
+	if (deserialized == NULL)
+		return NULL;
+
+	return deserialized;
 }
-*/
+
+int set_session(const struct session *session) {
+	char key[MAX_KEY_SIZE] = {0};
+	create_session_key(session->user_key, key);
+
+	char *serialized = serialize_session(session);
+	log_msg(LOG_INFO, "Serialized session: %s", serialized);
+
+	int ret = store_data_in_db(&oleg_conn, key, (unsigned char *)serialized, strlen(serialized));
+	free(serialized);
+
+	return ret;
+}
+
+int insert_session(const char user_key[static MAX_KEY_SIZE]) {
+	uuid_t uuid_raw = {0};
+	char uuid_str[UUID_CHAR_SIZE] = {0};
+
+	/* Generate a new UUID. */
+	uuid_generate(uuid_raw);
+	uuid_unparse_upper(uuid_raw, uuid_str);
+
+	session to_insert = {
+		.uuid = {0},
+		.user_key = {0},
+	};
+
+	memcpy(to_insert.uuid, uuid_str, sizeof(to_insert.uuid));
+	memcpy(to_insert.user_key, user_key, sizeof(to_insert.user_key));
+
+	return set_session(&to_insert);
+}

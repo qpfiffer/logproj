@@ -1,6 +1,6 @@
 CFLAGS=-Werror -Wextra -Wall -O2 -g3
 INCLUDES=-pthread -I./include/
-LIBS=-lrt -l38moths -loleg-http -lscrypt -lm
+LIBS=-lrt -l38moths -loleg-http -lscrypt -luuid -lm
 NAME=logproj
 COMMON_OBJ=db.o parson.o views.o models.o
 
