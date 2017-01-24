@@ -119,25 +119,23 @@ int api_login_user(const http_request *request, http_response *response) {
 
 	/* Check DB for existing user with that email address */
 	char user_key[MAX_KEY_SIZE] = {0};
-	if (get_user(email_address, user_key)) {
+	user *user = get_user(email_address, user_key);
+	if (!user) {
 		json_value_free(body_string);
-		return _api_failure(response, ctext, "That email address is already registered.");
+		return _api_failure(response, ctext, "That user does not exist.");
 	}
 
 	char hash[SCRYPT_MCF_LEN] = {0};
-	if (!libscrypt_hash(hash, (char *)password, SCRYPT_N, SCRYPT_r, SCRYPT_p)) {
+	strncpy(hash, user->password, sizeof(hash));
+	int rc = 0;
+	if ((rc = libscrypt_check(hash, (char *)password)) <= 0) {
 		json_value_free(body_string);
-		return _api_failure(response, ctext, "Could not hash password.");
-	}
-
-	if (!insert_user(email_address, hash)) {
-		json_value_free(body_string);
-		return _api_failure(response, ctext, "Could not create user.");
+		return _api_failure(response, ctext, "Incorrect password.");
 	}
 
 	json_value_free(body_string);
 	gshkl_add_string(ctext, "SUCCESS", "true");
 	gshkl_add_string(ctext, "ERROR", "[]");
 	gshkl_add_string(ctext, "DATA", "{}");
-	return render_file(ctext, "./templates/response.json", response);
+	return _log_user_in(user_key, ctext, response);
 }
