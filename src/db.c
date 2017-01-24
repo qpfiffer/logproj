@@ -86,7 +86,7 @@ int set_session(const struct session *session) {
 	return ret;
 }
 
-int insert_session(const char user_key[static MAX_KEY_SIZE]) {
+int insert_session(const char user_key[static MAX_KEY_SIZE], char out_uuid[static UUID_CHAR_SIZE]) {
 	uuid_t uuid_raw = {0};
 	char uuid_str[UUID_CHAR_SIZE] = {0};
 
@@ -100,7 +100,9 @@ int insert_session(const char user_key[static MAX_KEY_SIZE]) {
 	};
 
 	memcpy(to_insert.uuid, uuid_str, sizeof(to_insert.uuid));
+	strncpy(out_uuid, uuid_str, sizeof(to_insert.uuid));
 	memcpy(to_insert.user_key, user_key, sizeof(to_insert.user_key));
+
 
 	return set_session(&to_insert);
 }

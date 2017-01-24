@@ -22,4 +22,4 @@ int insert_user(const char email_address[static EMAIL_CHAR_SIZE], const char pas
 /* Sessions */
 struct session *get_session(const char uuid[static UUID_CHAR_SIZE], char out_key[static MAX_KEY_SIZE]);
 int set_session(const struct session *session);
-int insert_session(const char user_key[static MAX_KEY_SIZE]);
+int insert_session(const char user_key[static MAX_KEY_SIZE], char out_uuid[static UUID_CHAR_SIZE]);

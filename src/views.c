@@ -1,5 +1,6 @@
 // vim: noet ts=4 sw=4
 #include <stddef.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "common-defs.h"
@@ -32,14 +33,13 @@ int _log_user_in(const char user_key[static MAX_KEY_SIZE], const greshunkel_ctex
 	 * headers.
 	 */
 	/* We could also avoid a round-trip here. I don't care right now though. BREAK OLEG! */
-	insert_session(user_key);
-	session *session = get_session(user_key, NULL);
 	char uuid[UUID_CHAR_SIZE] = {0};
+	insert_session(user_key, uuid);
 
-	strncpy(uuid, session->uuid, sizeof(uuid));
-	free(session);
-
-	/* TODO: Set cookie. */
+	char buf[128] = {0};
+	/* UUID has some null chars in it or something */
+	snprintf(buf, sizeof(buf), "sessionid=%s;", uuid);
+	insert_custom_header(response, "Set-Cookie", buf);
 
 	return render_file(ctext, "./templates/response.json", response);
 }
