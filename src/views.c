@@ -75,11 +75,13 @@ int api_create_user(const http_request *request, http_response *response) {
 		return _api_failure(response, ctext, "That email address is already registered.");
 	}
 
-	char hash[SCRYPT_MCF_LEN] = {0};
-	if (!libscrypt_hash(hash, (char *)password, SCRYPT_N, SCRYPT_r, SCRYPT_p)) {
+	char hash[256] = {0};
+	int rc = 0;
+	if ((rc = libscrypt_hash(hash, (char *)password, SCRYPT_N, SCRYPT_r, SCRYPT_p)) == 0) {
 		json_value_free(body_string);
 		return _api_failure(response, ctext, "Could not hash password.");
 	}
+	log_msg(LOG_INFO, "Hash: %s", hash);
 
 	if (!insert_user(email_address, hash)) {
 		json_value_free(body_string);
@@ -128,6 +130,7 @@ int api_login_user(const http_request *request, http_response *response) {
 	char hash[SCRYPT_MCF_LEN] = {0};
 	strncpy(hash, user->password, sizeof(hash));
 	int rc = 0;
+	log_msg(LOG_INFO, "Hash: %s", hash);
 	if ((rc = libscrypt_check(hash, (char *)password)) <= 0) {
 		json_value_free(body_string);
 		return _api_failure(response, ctext, "Incorrect password.");
