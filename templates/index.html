@@ -16,16 +16,23 @@
 				<div class="col-2"></div>
 			</div>
 			<div class="row bloodbox">
-				<div class="col-3"></div>
-				<div class="col-6">
+				<div class="col-2"></div>
+				<div class="col-8">
 					<form>
 						<input v-model="new_user.email_address" type="text" name="email_address" placeholder="Email Address" />
 						<input v-model="new_user.password" type="password" name="password" placeholder="Password"/>
-						<div class="center"><button v-on:click.prevent="add_user" style="margin-right: 2em;">Sign Up</button><button v-on:click.prevent="login">Log In</button></div>
+						<div class="row">
+							<div class="col-6 buttonHolder">
+								<button v-on:click.prevent="add_user">Sign Up</button>
+							</div>
+							<div class="col-6 buttonHolder">
+								<button v-on:click.prevent="login">Log In</button>
+							</div>
+						</div>
 						<p class="error" v-show="new_user_error">Error: {{new_user_error}}</p>
 					</form>
 				</div>
-				<div class="col-3"></div>
+				<div class="col-2"></div>
 		</div>
 	</body>
 	<script src="/static/js/vue.js"></script>

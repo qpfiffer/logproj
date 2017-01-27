@@ -142,3 +142,9 @@ int api_login_user(const http_request *request, http_response *response) {
 	gshkl_add_string(ctext, "DATA", "{}");
 	return _log_user_in(user_key, ctext, response);
 }
+
+int app_main(const http_request *request, http_response *response) {
+	(void)request;
+	greshunkel_ctext *ctext = gshkl_init_context();
+	return render_file(ctext, "./templates/app.html", response);
+}

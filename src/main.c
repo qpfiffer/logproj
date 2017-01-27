@@ -18,6 +18,7 @@ void term(int signum) {
 static const route all_routes[] = {
 	{"POST", "api_login_user", "^/api/user_login.json$", 0, &api_login_user, &heap_cleanup},
 	{"POST", "api_create_user", "^/api/user_create.json$", 0, &api_create_user, &heap_cleanup},
+	{"GET", "app_main", "^/app$", 0, &app_main, &heap_cleanup},
 	{"GET", "generic_static", "^/static/[a-zA-Z0-9/_-]*\\.[a-zA-Z]*$", 0, &static_handler, &mmap_cleanup},
 	{"GET", "root_handler", "^/$", 0, &index_handler, &heap_cleanup},
 };
