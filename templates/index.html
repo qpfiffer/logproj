@@ -24,10 +24,10 @@
 						<input v-model="new_user.password" type="password" name="password" placeholder="Password"/>
 						<div class="row">
 							<div class="col-6 buttonHolder">
-								<button v-on:click.prevent="add_user">Sign Up</button>
+								<button v-on:click.prevent="login">Log In</button>
 							</div>
 							<div class="col-6 buttonHolder">
-								<button v-on:click.prevent="login">Log In</button>
+								<button v-on:click.prevent="add_user">Sign Up</button>
 							</div>
 						</div>
 						<p class="error" v-show="new_user_error">Error: {{new_user_error}}</p>

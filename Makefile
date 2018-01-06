@@ -1,4 +1,4 @@
-CFLAGS=-Werror -Wextra -Wall -O2 -g3
+CFLAGS=-Werror -Wextra -Wall -O0 -g3
 INCLUDES=-pthread -I./include/
 LIBS=-lrt -l38moths -loleg-http -lscrypt -luuid -lm
 NAME=logproj

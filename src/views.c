@@ -38,7 +38,7 @@ int _log_user_in(const char user_key[static MAX_KEY_SIZE], const greshunkel_ctex
 
 	char buf[128] = {0};
 	/* UUID has some null chars in it or something */
-	snprintf(buf, sizeof(buf), "sessionid=%s;", uuid);
+	snprintf(buf, sizeof(buf), "sessionid=%s", uuid);
 	insert_custom_header(response, "Set-Cookie", strlen("Set-Cookie"), buf, strnlen(buf, sizeof(buf)));
 
 	return render_file(ctext, "./templates/response.json", response);

@@ -20,6 +20,7 @@ function main() {
 						this.new_user.name = '';
 						this.new_user.email = '';
 						this.new_user_error = null;
+						window.location.href = "/app";
 					} else {
 						this.new_user_error = response.body.error;
 					}
