@@ -3,32 +3,35 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <38-moths/parse.h>
+
 #include "common-defs.h"
 #include "db.h"
 #include "parson.h"
 #include "models.h"
 #include "views.h"
 
-int index_handler(const http_request *request, http_response *response) {
-	/* TODO: Redirect to app home if session exists. */
-	(void)request;
+int index_handler(const m38_http_request *request, m38_http_response *response) {
+	char *cookie_value = m38_get_header_value_request(request, "Cookie");
+	free(cookie_value);
+
 	greshunkel_ctext *ctext = gshkl_init_context();
-	return render_file(ctext, "./templates/index.html", response);
+	return m38_render_file(ctext, "./templates/index.html", response);
 }
 
-int static_handler(const http_request *request, http_response *response) {
+int static_handler(const m38_http_request *request, m38_http_response *response) {
 	/* Remove the leading slash: */
 	const char *file_path = request->resource + sizeof(char);
-	return mmap_file(file_path, response);
+	return m38_mmap_file(file_path, response);
 }
 
-static int _api_failure(http_response *response, greshunkel_ctext *ctext, const char *error) {
+static int _api_failure(m38_http_response *response, greshunkel_ctext *ctext, const char *error) {
 	gshkl_add_string(ctext, "SUCCESS", "false");
 	gshkl_add_string(ctext, "ERROR", error);
 	gshkl_add_string(ctext, "DATA", "{}");
-	return render_file(ctext, "./templates/response.json", response);
+	return m38_render_file(ctext, "./templates/response.json", response);
 }
-int _log_user_in(const char user_key[static MAX_KEY_SIZE], const greshunkel_ctext *ctext, http_response *response) {
+int _log_user_in(const char user_key[static MAX_KEY_SIZE], const greshunkel_ctext *ctext, m38_http_response *response) {
 	/* Creates a new session object for the specified user, and returns the right Set-Cookie
 	 * headers.
 	 */
@@ -39,13 +42,13 @@ int _log_user_in(const char user_key[static MAX_KEY_SIZE], const greshunkel_ctex
 	char buf[128] = {0};
 	/* UUID has some null chars in it or something */
 	snprintf(buf, sizeof(buf), "sessionid=%s; HttpOnly; Path=/", uuid);
-	insert_custom_header(response, "Set-Cookie", strlen("Set-Cookie"), buf, strnlen(buf, sizeof(buf)));
+	m38_insert_custom_header(response, "Set-Cookie", strlen("Set-Cookie"), buf, strnlen(buf, sizeof(buf)));
 
-	return render_file(ctext, "./templates/response.json", response);
+	return m38_render_file(ctext, "./templates/response.json", response);
 }
 
 /* API HANDLERS */
-int api_create_user(const http_request *request, http_response *response) {
+int api_create_user(const m38_http_request *request, m38_http_response *response) {
 	greshunkel_ctext *ctext = gshkl_init_context();
 
 	/* Deserialize the JSON object. */
@@ -81,7 +84,7 @@ int api_create_user(const http_request *request, http_response *response) {
 		json_value_free(body_string);
 		return _api_failure(response, ctext, "Could not hash password.");
 	}
-	log_msg(LOG_INFO, "Hash: %s", hash);
+	m38_log_msg(LOG_INFO, "Hash: %s", hash);
 
 	if (!insert_user(email_address, hash)) {
 		json_value_free(body_string);
@@ -96,7 +99,7 @@ int api_create_user(const http_request *request, http_response *response) {
 	return _log_user_in(user_key, ctext, response);
 }
 
-int api_login_user(const http_request *request, http_response *response) {
+int api_login_user(const m38_http_request *request, m38_http_response *response) {
 	greshunkel_ctext *ctext = gshkl_init_context();
 
 	/* Deserialize the JSON object. */
@@ -130,7 +133,7 @@ int api_login_user(const http_request *request, http_response *response) {
 	char hash[SCRYPT_MCF_LEN] = {0};
 	strncpy(hash, user->password, sizeof(hash));
 	int rc = 0;
-	log_msg(LOG_INFO, "Hash: %s", hash);
+	m38_log_msg(LOG_INFO, "Hash: %s", hash);
 	if ((rc = libscrypt_check(hash, (char *)password)) <= 0) {
 		json_value_free(body_string);
 		return _api_failure(response, ctext, "Incorrect password.");
@@ -143,8 +146,8 @@ int api_login_user(const http_request *request, http_response *response) {
 	return _log_user_in(user_key, ctext, response);
 }
 
-int app_main(const http_request *request, http_response *response) {
+int app_main(const m38_http_request *request, m38_http_response *response) {
 	(void)request;
 	greshunkel_ctext *ctext = gshkl_init_context();
-	return render_file(ctext, "./templates/app.html", response);
+	return m38_render_file(ctext, "./templates/app.html", response);
 }

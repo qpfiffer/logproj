@@ -14,7 +14,7 @@ user *get_user(const char email_address[static 128], char out_key[static MAX_KEY
 
 	size_t json_size = 0;
 	char *json = (char *)fetch_data_from_db(&oleg_conn, out_key, &json_size);
-	/* log_msg(LOG_INFO, "Json from DB: %s", json); */
+	/* m38_log_msg(LOG_INFO, "Json from DB: %s", json); */
 
 	if (json == NULL)
 		return NULL;
@@ -29,7 +29,7 @@ int set_user(const user *user) {
 	create_user_key(user->email_address, key);
 
 	char *serialized = serialize_user(user);
-	log_msg(LOG_INFO, "Serialized user: %s", serialized);
+	m38_log_msg(LOG_INFO, "Serialized user: %s", serialized);
 
 	int ret = store_data_in_db(&oleg_conn, key, (unsigned char *)serialized, strlen(serialized));
 	free(serialized);
@@ -59,7 +59,7 @@ session *get_session(const char uuid[static UUID_CHAR_SIZE], char out_key[static
 
 	size_t json_size = 0;
 	char *json = (char *)fetch_data_from_db(&oleg_conn, out_key, &json_size);
-	/* log_msg(LOG_INFO, "Json from DB: %s", json); */
+	/* m38_log_msg(LOG_INFO, "Json from DB: %s", json); */
 
 	if (json == NULL)
 		return NULL;
@@ -78,7 +78,7 @@ int set_session(const struct session *session) {
 	create_session_key(session->user_key, key);
 
 	char *serialized = serialize_session(session);
-	log_msg(LOG_INFO, "Serialized session: %s", serialized);
+	m38_log_msg(LOG_INFO, "Serialized session: %s", serialized);
 
 	int ret = store_data_in_db(&oleg_conn, key, (unsigned char *)serialized, strlen(serialized));
 	free(serialized);
