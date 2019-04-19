@@ -9,39 +9,52 @@ function main() {
 				email_address: '',
 				password: ''
 			},
+			errors: [],
 			new_user_error: ""
 		},
 		methods: {
 			login: function() {
-				var data = { "email_address": this.new_user.email_address,
-							 "password": this.new_user.password }
+				this.errors = [];
+
+				if (!this.new_user.email_address) {
+					this.errors.push('Email address required.');
+					return
+				}
+
+				if (!this.new_user.password) {
+					this.errors.push('Password required.');
+					return
+				}
+
+				var data = { 'email_address': this.new_user.email_address,
+							 'password': this.new_user.password }
 				this.$http.post('/api/user_login.json', data).then(function(response) {
 					if (response.body.success == true) {
 						this.new_user.name = '';
 						this.new_user.email = '';
 						this.new_user_error = null;
-						window.location.href = "/app";
+						window.location.href = '/app';
 					} else {
 						this.new_user_error = response.body.error;
 					}
 				}, function(response) {
-					this.new_user_error = "Something went wrong.";
+					this.new_user_error = 'Something went wrong.';
 				});
 			},
 			add_user: function() {
-				var data = { "email_address": this.new_user.email_address,
-							 "password": this.new_user.password }
+				var data = { 'email_address': this.new_user.email_address,
+							 'password': this.new_user.password }
 				this.$http.post('/api/user_create.json', data).then(function(response) {
 					if (response.body.success == true) {
 						this.new_user.name = '';
 						this.new_user.email = '';
 						this.new_user_error = null;
-						window.location.href = "/app";
+						window.location.href = '/app';
 					} else {
 						this.new_user_error = response.body.error;
 					}
 				}, function(response) {
-					this.new_user_error = "Something went wrong.";
+					this.new_user_error = 'Something went wrong.';
 				});
 			}
 		}
