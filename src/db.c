@@ -9,19 +9,88 @@
 #include "db.h"
 #include "models.h"
 
-user *get_user(const char email_address[static 128], char out_key[static MAX_KEY_SIZE]) {
-	create_user_key(email_address, out_key);
+static PGconn *_get_pg_connection() {
+	PGconn *conn = PQconnectdb(DB_PG_CONNECTION_INFO);
 
-	size_t json_size = 0;
-	char *json = (char *)fetch_data_from_db(&oleg_conn, out_key, &json_size);
-	/* m38_log_msg(LOG_INFO, "Json from DB: %s", json); */
-
-	if (json == NULL)
+	if (PQstatus(conn) != CONNECTION_OK) {
+		m38_log_msg(LOG_ERR, "Could not connect to Postgres: %s", PQerrorMessage(conn));
 		return NULL;
+	}
 
-	user *deserialized = deserialize_user(json);
-	free(json);
+	return conn;
+}
+
+static void _finish_pg_connection(PGconn *conn) {
+	if (conn)
+		PQfinish(conn);
+}
+
+static PGresult *_generic_command(const char *query_command) {
+	PGresult *res = NULL;
+	PGconn *conn = NULL;
+
+	conn = _get_pg_connection();
+	if (!conn)
+		goto error;
+
+	res = PQexec(conn, query_command);
+
+	if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+		m38_log_msg(LOG_ERR, "SELECT failed: %s", PQerrorMessage(conn));
+		goto error;
+	}
+
+	_finish_pg_connection(conn);
+
+	return res;
+
+error:
+	if (res)
+		PQclear(res);
+	_finish_pg_connection(conn);
+	return NULL;
+}
+
+user *get_user_by_email(const char email_address[static EMAIL_CHAR_SIZE]) {
+	PGresult *res = NULL;
+	PGconn *conn = NULL;
+
+	const char *param_values[] = {email_address};
+
+	conn = _get_pg_connection();
+	if (!conn)
+		goto error;
+
+	res = PQexecParams(conn,
+					  "SELECT * "
+					  "FROM logproj.user "
+					  "WHERE email_address = $1;",
+					  1,
+					  NULL,
+					  param_values,
+					  NULL,
+					  NULL,
+					  0);
+
+	if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+		m38_log_msg(LOG_ERR, "SELECT failed: %s", PQerrorMessage(conn));
+		goto error;
+	}
+
+	user *deserialized = deserialize_user_from_tuples(res, 0);
+	if (!deserialized)
+		goto error;
+
+	PQclear(res);
+	_finish_pg_connection(conn);
+
 	return deserialized;
+
+error:
+	if (res)
+		PQclear(res);
+	_finish_pg_connection(conn);
+	return NULL;
 }
 
 int set_user(const user *user) {

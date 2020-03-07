@@ -10,14 +10,19 @@
  * strings while still allowing us to use 'sizeof(webm.file_hash)'.
  */
 typedef struct user {
-	char email_address[EMAIL_CHAR_SIZE];
+	char uuid[UUID_CHAR_SIZE];
 	unsigned char _null_term_hax_1;
 
-	char password[SCRYPT_MCF_LEN];
+	char email_address[EMAIL_CHAR_SIZE];
 	unsigned char _null_term_hax_2;
 
+	char password[SCRYPT_MCF_LEN];
+	unsigned char _null_term_hax_3;
+
+	char salt[SCRYPT_SALT_LEN];
+	unsigned char _null_term_hax_4;
+
 	time_t created_at;
-	vector *api_keys;
 } __attribute__((__packed__)) user;
 
 void create_user_key(const char email_address[static EMAIL_CHAR_SIZE], char outbuf[static MAX_KEY_SIZE]);

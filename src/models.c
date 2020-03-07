@@ -27,6 +27,33 @@ char *serialize_user(const user *to_serialize) {
 	json_value_free(root_value);
 	return serialized_string;
 }
+
+user *deserialize_user_from_tuples(const PGresult *res, const unsigned int i) {
+	if (!res)
+		return NULL;
+
+	if (PQntuples(res) <= 0) {
+		m38_log_msg(LOG_WARN, "No tuples in PG result for deserialize_user_from_tuples.");
+		return NULL;
+	}
+
+	user *to_return = calloc(1, sizeof(user));
+
+	const int id_col = PQfnumber(res, "id");
+	const int created_at_col = PQfnumber(res, "created_at");
+	const int email_address_col = PQfnumber(res, "email_address");
+	const int email_address_col = PQfnumber(res, "email_address");
+
+	strncpy(to_return->file_hash, PQgetvalue(res, i, file_hash_col), sizeof(to_return->file_hash));
+	to_return->size = (size_t)atol(PQgetvalue(res, i, size_col));
+	to_return->post_id = (unsigned int)atol(PQgetvalue(res, i, post_id_col));
+	to_return->created_at = (time_t)atol(PQgetvalue(res, i, created_at_col));
+	to_return->id = (unsigned int)atol(PQgetvalue(res, i, id_col));
+
+
+	return to_return;
+}
+
 user *deserialize_user(const char *json) {
 	if (!json)
 		return NULL;
