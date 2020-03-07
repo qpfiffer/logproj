@@ -291,3 +291,41 @@ error:
 	_finish_pg_connection(conn);
 	return 0;
 }
+
+int delete_sessions(const char session_id[static UUID_CHAR_SIZE]) {
+	PGresult *res = NULL;
+	PGconn *conn = NULL;
+
+	const char *param_values[] = {session_id};
+
+	conn = _get_pg_connection();
+	if (!conn)
+		goto error;
+
+	
+	res = PQexecParams(conn,
+					  "DELETE FROM logproj.session"
+					  "WHERE session_id = $1;",
+					  1,
+					  NULL,
+					  param_values,
+					  NULL,
+					  NULL,
+					  0);
+
+	if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+		m38_log_msg(LOG_ERR, "DELETE failed: %s", PQerrorMessage(conn));
+		goto error;
+	}
+
+	PQclear(res);
+	_finish_pg_connection(conn);
+
+	return 1;
+
+error:
+	if (res)
+		PQclear(res);
+	_finish_pg_connection(conn);
+	return 0;
+}

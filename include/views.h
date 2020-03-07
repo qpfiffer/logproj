@@ -7,6 +7,7 @@ int index_handler(const m38_http_request *request, m38_http_response *response);
 
 /* Main logged in view */
 int app_main(const m38_http_request *request, m38_http_response *response);
+int app_logout(const m38_http_request *request, m38_http_response *response);
 
 /* API handlers */
 int api_user_register(const m38_http_request *request, m38_http_response *response);

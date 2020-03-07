@@ -27,7 +27,7 @@ const app = new Vue({
 	},
 	methods: {
 		login: function() {
-			this.errors = [];
+			this.sharedState.state.errors = [];
 
 			if (!this.sharedState.state.new_user.email_address) {
 				this.errors.push('Email address required.');
@@ -55,18 +55,30 @@ const app = new Vue({
 			});
 		},
 		add_user: function() {
+			this.sharedState.state.errors = [];
+
+			if (!this.sharedState.state.new_user.email_address) {
+				this.errors.push('Email address required.');
+				return
+			}
+
+			if (!this.sharedState.state.new_user.password) {
+				this.errors.push('Password required.');
+				return
+			}
+
 			var data = {	'email_address': this.sharedState.state.new_user.email_address,
 										'password': this.sharedState.state.new_user.password }
-			this.$http.post('/api/user_create.json', data).then(function(response) {
-				if (response.body.success == true) {
-					this.new_user.name = '';
-					this.new_user.email = '';
-					this.new_user_error = null;
+			postData('/api/user/register', data).then((response) => {
+			}, function(response) {
+				if (response.success == true) {
+					this.sharedState.state.new_user.name = '';
+					this.sharedState.state.new_user.email = '';
+					this.sharedState.state.new_user_error = null;
 					window.location.href = '/app';
 				} else {
-					this.new_user_error = response.body.error;
+					this.sharedState.state.new_user_error = response.body.error;
 				}
-			}, function(response) {
 				this.new_user_error = 'Something went wrong.';
 			});
 		}

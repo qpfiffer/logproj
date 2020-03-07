@@ -55,6 +55,25 @@ static int _api_success(m38_http_response *response, JSON_Value *data_value) {
 	return m38_return_raw_buffer(output, strlen(output), response);
 }
 
+int app_logout(const m38_http_request *request, m38_http_response *response) {
+	greshunkel_ctext *ctext = gshkl_init_context();
+
+	char *cookie_value = m38_get_header_value_request(request, "Cookie");
+	free(cookie_value);
+
+	char session_id[] = {0};
+	int rc = delete_sessions(session_id);
+	if (!rc)
+		return _api_failure(response, "Could not delete sessions.");
+
+	const char buf[] = "sessionid=deleted; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+	m38_insert_custom_header(response,
+			"Set-Cookie", strlen("Set-Cookie"),
+			buf, sizeof(buf));
+
+	return m38_render_file(ctext, "./templates/logged_out.html", response);
+}
+
 int _log_user_in(const char email_address[static EMAIL_CHAR_SIZE],
 				 m38_http_response *response) {
 	/* Creates a new session object for the specified user, and returns the right Set-Cookie
@@ -181,5 +200,5 @@ int api_user(const m38_http_request *request, m38_http_response *response) {
 int app_main(const m38_http_request *request, m38_http_response *response) {
 	(void)request;
 	greshunkel_ctext *ctext = gshkl_init_context();
-	return m38_render_file(ctext, "./templates/app.html", response);
+	return m38_render_file(ctext, "./templates/dashboard.html", response);
 }
