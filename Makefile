@@ -1,6 +1,6 @@
 CFLAGS=-Werror -Wno-format-truncation -Wno-missing-field-initializers -Wextra -Wall -O0 -g3
 INCLUDES=-pthread -I./include/ `pkg-config --cflags libpq`
-LIBS=-lrt -l38moths -lscrypt -luuid -lm `pkg-config --libs libpq`
+LIBS=-lrt -l38moths -luuid -ljwt -lscrypt -lm `pkg-config --libs libpq`
 NAME=logproj
 COMMON_OBJ=db.o blue_midnight_wish.o parson.o views.o models.o
 

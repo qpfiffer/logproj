@@ -19,14 +19,14 @@
 			<div class="row bloodbox">
 				<div class="col-2"></div>
 				<div class="col-8">
-					<p v-if="errors.length">
+					<div style="display: none;" v-if="sharedState.state.errors.length">
 						<ul>
-							<li class="error" v-for="error in errors">{{ error }}</li>
+							<li class="error" v-for="error in sharedState.state.errors">{{ error }}</li>
 						</ul>
-					</p>
+					</div>
 					<form>
-						<input v-model="new_user.email_address" type="text" name="email_address" placeholder="Email Address" />
-						<input v-model="new_user.password" type="password" name="password" placeholder="Password"/>
+						<input v-model="sharedState.state.new_user.email_address" type="text" name="email_address" placeholder="Email Address" />
+						<input v-model="sharedState.state.new_user.password" type="password" name="password" placeholder="Password"/>
 						<div class="row">
 							<div class="col-6 buttonHolder">
 								<button v-on:click.prevent="login">Log In</button>
@@ -35,18 +35,14 @@
 								<button v-on:click.prevent="add_user">Sign Up</button>
 							</div>
 						</div>
-						<p class="error" v-show="new_user_error">Error: {{new_user_error}}</p>
+						<p style="display: none;" class="error" v-show="sharedState.state.new_user_error">Error: {{sharedState.state.new_user_error}}</p>
 					</form>
 				</div>
 				<div class="col-2"></div>
 		</div>
 	</body>
-	<script src="/static/js/vue.js"></script>
-	<script src="/static/js/vue-resource-min.js"></script>
-	<script src="/static/js/front-page.js"></script>
-	<script>
-		main();
-	</script>
+	<script type="text/javascript" src="/static/js/vue-min.js"></script>
+	<script type="text/javascript" src="/static/js/app.js"></script>
 </html>
 <!-- vim: noet ts=4 sw=4:
 -->
