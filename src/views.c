@@ -31,13 +31,17 @@ static int _api_failure(m38_http_response *response, greshunkel_ctext *ctext, co
 	gshkl_add_string(ctext, "DATA", "{}");
 	return m38_render_file(ctext, "./templates/response.json", response);
 }
-int _log_user_in(const char user_key[static MAX_KEY_SIZE], const greshunkel_ctext *ctext, m38_http_response *response) {
+
+int _log_user_in(const char email_address[static EMAIL_CHAR_SIZE],
+				 greshunkel_ctext *ctext,
+				 m38_http_response *response) {
 	/* Creates a new session object for the specified user, and returns the right Set-Cookie
 	 * headers.
 	 */
-	/* We could also avoid a round-trip here. I don't care right now though. BREAK OLEG! */
 	char uuid[UUID_CHAR_SIZE + 1] = {0};
-	insert_session(user_key, uuid);
+	int rc = insert_new_session(email_address, uuid);
+	if (!rc)
+		return _api_failure(response, ctext, "Could not insert new session.");
 
 	char buf[128] = {0};
 	/* UUID has some null chars in it or something */
@@ -72,8 +76,7 @@ int api_create_user(const m38_http_request *request, m38_http_response *response
 	}
 
 	/* Check DB for existing user with that email address */
-	char user_key[MAX_KEY_SIZE] = {0};
-	if (get_user(email_address, user_key)) {
+	if (user_exists(email_address)) {
 		json_value_free(body_string);
 		return _api_failure(response, ctext, "That email address is already registered.");
 	}
@@ -96,7 +99,7 @@ int api_create_user(const m38_http_request *request, m38_http_response *response
 	gshkl_add_string(ctext, "ERROR", "[]");
 	gshkl_add_string(ctext, "DATA", "{}");
 
-	return _log_user_in(user_key, ctext, response);
+	return _log_user_in(email_address, ctext, response);
 }
 
 int api_login_user(const m38_http_request *request, m38_http_response *response) {
@@ -114,25 +117,26 @@ int api_login_user(const m38_http_request *request, m38_http_response *response)
 		return _api_failure(response, ctext, "Could not get object from JSON.");
 	}
 
-	const char *email_address = json_object_get_string(new_user_object, "email_address");
+	const char *_email_address = json_object_get_string(new_user_object, "email_address");
 	const char *password = json_object_get_string(new_user_object, "password");
 
-	if (!email_address || !password) {
+	if (!_email_address || !password) {
 		json_value_free(body_string);
-		return _api_failure(response, ctext, "Not all required fields were present..");
+		return _api_failure(response, ctext, "Not all required fields were present.");
 	}
 
+	char email_address[EMAIL_CHAR_SIZE] = {0};
+	strncpy(email_address, _email_address, sizeof(email_address));
+
 	/* Check DB for existing user with that email address */
-	char user_key[MAX_KEY_SIZE] = {0};
-	user *user = get_user(email_address, user_key);
-	if (!user) {
+	char hash[SCRYPT_MCF_LEN] = {0};
+	int rc = get_user_pw_hash_by_email(email_address, hash);
+	if (!rc) {
 		json_value_free(body_string);
 		return _api_failure(response, ctext, "That user does not exist.");
 	}
 
-	char hash[SCRYPT_MCF_LEN] = {0};
-	strncpy(hash, user->password, sizeof(hash));
-	int rc = 0;
+	rc = 0;
 	m38_log_msg(LOG_INFO, "Hash: %s", hash);
 	if ((rc = libscrypt_check(hash, (char *)password)) <= 0) {
 		json_value_free(body_string);
@@ -143,7 +147,8 @@ int api_login_user(const m38_http_request *request, m38_http_response *response)
 	gshkl_add_string(ctext, "SUCCESS", "true");
 	gshkl_add_string(ctext, "ERROR", "[]");
 	gshkl_add_string(ctext, "DATA", "{}");
-	return _log_user_in(user_key, ctext, response);
+
+	return _log_user_in(email_address, ctext, response);
 }
 
 int app_main(const m38_http_request *request, m38_http_response *response) {

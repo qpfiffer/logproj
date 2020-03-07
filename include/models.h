@@ -19,15 +19,12 @@ typedef struct user {
 	char password[SCRYPT_MCF_LEN];
 	unsigned char _null_term_hax_3;
 
-	char salt[SCRYPT_SALT_LEN];
-	unsigned char _null_term_hax_4;
-
 	time_t created_at;
 } __attribute__((__packed__)) user;
 
 void create_user_key(const char email_address[static EMAIL_CHAR_SIZE], char outbuf[static MAX_KEY_SIZE]);
 char *serialize_user(const user *to_serialize);
-user *deserialize_user(const char *json);
+user *deserialize_user_from_tuples(const PGresult *res, const unsigned int i);
 unsigned int user_count();
 
 /* An API key is just that: A key. */

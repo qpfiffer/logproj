@@ -25,6 +25,7 @@ static void _finish_pg_connection(PGconn *conn) {
 		PQfinish(conn);
 }
 
+/*
 static PGresult *_generic_command(const char *query_command) {
 	PGresult *res = NULL;
 	PGconn *conn = NULL;
@@ -49,6 +50,48 @@ error:
 		PQclear(res);
 	_finish_pg_connection(conn);
 	return NULL;
+}
+*/
+
+int user_exists(const char email_address[static EMAIL_CHAR_SIZE]) {
+	PGresult *res = NULL;
+	PGconn *conn = NULL;
+
+	const char *param_values[] = {email_address};
+	const char buf[] = "SELECT count(*) "
+					   "FROM logproj.user "
+					   "WHERE email_address = $1;";
+
+	conn = _get_pg_connection();
+	if (!conn)
+		goto error;
+
+	res = PQexecParams(conn,
+					  buf,
+					  1,
+					  NULL,
+					  param_values,
+					  NULL,
+					  NULL,
+					  0);
+
+	if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+		m38_log_msg(LOG_ERR, "SELECT failed: %s", PQerrorMessage(conn));
+		goto error;
+	}
+
+	const int count = (int)atol(PQgetvalue(res, 0, 0));
+
+	PQclear(res);
+	_finish_pg_connection(conn);
+
+	return count;
+
+error:
+	if (res)
+		PQclear(res);
+	_finish_pg_connection(conn);
+	return 0;
 }
 
 user *get_user_by_email(const char email_address[static EMAIL_CHAR_SIZE]) {
@@ -94,16 +137,41 @@ error:
 }
 
 int set_user(const user *user) {
-	char key[MAX_KEY_SIZE] = {0};
-	create_user_key(user->email_address, key);
+	PGresult *res = NULL;
+	PGconn *conn = NULL;
 
-	char *serialized = serialize_user(user);
-	m38_log_msg(LOG_INFO, "Serialized user: %s", serialized);
+	const char *param_values[] = {user->email_address, user->password};
 
-	int ret = store_data_in_db(&oleg_conn, key, (unsigned char *)serialized, strlen(serialized));
-	free(serialized);
+	conn = _get_pg_connection();
+	if (!conn)
+		goto error;
 
-	return ret;
+	res = PQexecParams(conn,
+					  "INSERT INTO logproj.user (email_address, password) "
+					  "VALUES ($1, $2) "
+					  "RETURNING id;",
+					  2,
+					  NULL,
+					  param_values,
+					  NULL,
+					  NULL,
+					  0);
+
+	if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+		m38_log_msg(LOG_ERR, "SELECT failed: %s", PQerrorMessage(conn));
+		goto error;
+	}
+
+	PQclear(res);
+	_finish_pg_connection(conn);
+
+	return 1;
+
+error:
+	if (res)
+		PQclear(res);
+	_finish_pg_connection(conn);
+	return 0;
 }
 
 int insert_user(const char email_address[static 128], const char password[static 128]) {
@@ -126,8 +194,8 @@ session *get_session(const char uuid[static UUID_CHAR_SIZE], char out_key[static
 	 */
 	create_session_key(uuid, out_key);
 
-	size_t json_size = 0;
-	char *json = (char *)fetch_data_from_db(&oleg_conn, out_key, &json_size);
+	char *json = NULL;
+	//char *json = (char *)fetch_data_from_db(&oleg_conn, out_key, &json_size);
 	/* m38_log_msg(LOG_INFO, "Json from DB: %s", json); */
 
 	if (json == NULL)
@@ -142,36 +210,84 @@ session *get_session(const char uuid[static UUID_CHAR_SIZE], char out_key[static
 	return deserialized;
 }
 
-int set_session(const struct session *session) {
-	char key[MAX_KEY_SIZE] = {0};
-	create_session_key(session->user_key, key);
+int get_user_pw_hash_by_email(const char email_address[static EMAIL_CHAR_SIZE], char out_hash[static SCRYPT_MCF_LEN]) {
+	PGresult *res = NULL;
+	PGconn *conn = NULL;
 
-	char *serialized = serialize_session(session);
-	m38_log_msg(LOG_INFO, "Serialized session: %s", serialized);
+	const char *param_values[] = {email_address};
 
-	int ret = store_data_in_db(&oleg_conn, key, (unsigned char *)serialized, strlen(serialized));
-	free(serialized);
+	conn = _get_pg_connection();
+	if (!conn)
+		goto error;
 
-	return ret;
+	res = PQexecParams(conn,
+					  "SELECT password "
+					  "FROM logproj.user "
+					  "WHERE email_address = $1;",
+					  1,
+					  NULL,
+					  param_values,
+					  NULL,
+					  NULL,
+					  0);
+
+	if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+		m38_log_msg(LOG_ERR, "SELECT failed: %s", PQerrorMessage(conn));
+		goto error;
+	}
+
+	const size_t siz = SCRYPT_MCF_LEN;
+	strncpy(out_hash, PQgetvalue(res, 0, 0), siz);
+
+	PQclear(res);
+	_finish_pg_connection(conn);
+
+	return 1;
+
+error:
+	if (res)
+		PQclear(res);
+	_finish_pg_connection(conn);
+	return 0;
 }
 
-int insert_session(const char user_key[static MAX_KEY_SIZE], char out_uuid[static UUID_CHAR_SIZE]) {
-	uuid_t uuid_raw = {0};
-	char uuid_str[UUID_CHAR_SIZE] = {0};
+int insert_new_session(const char email_address[static EMAIL_CHAR_SIZE], char out_session_uuid[static UUID_CHAR_SIZE]) {
+	PGresult *res = NULL;
+	PGconn *conn = NULL;
 
-	/* Generate a new UUID. */
-	uuid_generate(uuid_raw);
-	uuid_unparse_upper(uuid_raw, uuid_str);
+	const char *param_values[] = {email_address};
 
-	session to_insert = {
-		.uuid = {0},
-		.user_key = {0},
-	};
+	conn = _get_pg_connection();
+	if (!conn)
+		goto error;
 
-	memcpy(to_insert.uuid, uuid_str, sizeof(to_insert.uuid));
-	strncpy(out_uuid, uuid_str, sizeof(to_insert.uuid));
-	memcpy(to_insert.user_key, user_key, sizeof(to_insert.user_key));
+	res = PQexecParams(conn,
+					  "INSERT INTO logproj.session (user_id) "
+					  "VALUES ((SELECT id FROM logproj.user WHERE email_address = $1)) "
+					  "RETURNING id;",
+					  1,
+					  NULL,
+					  param_values,
+					  NULL,
+					  NULL,
+					  0);
 
+	if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+		m38_log_msg(LOG_ERR, "SELECT failed: %s", PQerrorMessage(conn));
+		goto error;
+	}
 
-	return set_session(&to_insert);
+	const size_t siz = UUID_CHAR_SIZE + 1;
+	strncpy(out_session_uuid, PQgetvalue(res, 0, 0), siz);
+
+	PQclear(res);
+	_finish_pg_connection(conn);
+
+	return 1;
+
+error:
+	if (res)
+		PQclear(res);
+	_finish_pg_connection(conn);
+	return 0;
 }
