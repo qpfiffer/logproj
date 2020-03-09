@@ -64,7 +64,7 @@ int lp_app_logout(const m38_http_request *request, m38_http_response *response) 
 	free(cookie_string);
 
 	if (!session_id)
-		return _api_failure(response, "No session ID in cookie.");
+		return lp_error_page(request, response);
 
 	int rc = delete_sessions(session_id);
 	if (!rc)
