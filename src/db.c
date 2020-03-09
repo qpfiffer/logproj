@@ -304,8 +304,8 @@ int delete_sessions(const char session_id[static UUID_CHAR_SIZE]) {
 
 	
 	res = PQexecParams(conn,
-					  "DELETE FROM logproj.session"
-					  "WHERE session_id = $1;",
+					  "DELETE FROM logproj.session "
+					  "WHERE id = $1;",
 					  1,
 					  NULL,
 					  param_values,

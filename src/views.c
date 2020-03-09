@@ -13,6 +13,7 @@
 
 int index_handler(const m38_http_request *request, m38_http_response *response) {
 	char *cookie_value = m38_get_header_value_request(request, "Cookie");
+	/* TODO: Redirect to app? */
 	free(cookie_value);
 
 	greshunkel_ctext *ctext = gshkl_init_context();
@@ -58,13 +59,17 @@ static int _api_success(m38_http_response *response, JSON_Value *data_value) {
 int app_logout(const m38_http_request *request, m38_http_response *response) {
 	greshunkel_ctext *ctext = gshkl_init_context();
 
-	char *cookie_value = m38_get_header_value_request(request, "Cookie");
-	free(cookie_value);
+	char *cookie_string = m38_get_header_value_request(request, "Cookie");
+	char *session_id = m38_get_cookie_value(cookie_string, strlen(cookie_string), "sessionid");
+	free(cookie_string);
 
-	char session_id[] = {0};
+	if (!session_id)
+		return _api_failure(response, "No session ID in cookie.");
+
 	int rc = delete_sessions(session_id);
 	if (!rc)
-		return _api_failure(response, "Could not delete sessions.");
+		m38_log_msg(LOG_WARN, "Could not delete session with ID '%s'", session_id);
+	free(session_id);
 
 	const char buf[] = "sessionid=deleted; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
 	m38_insert_custom_header(response,
