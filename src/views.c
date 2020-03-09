@@ -2,8 +2,10 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #include <38-moths/parse.h>
+#include <jwt.h>
 
 #include "common-defs.h"
 #include "db.h"
@@ -79,20 +81,82 @@ int lp_app_logout(const m38_http_request *request, m38_http_response *response) 
 	return m38_render_file(ctext, "./templates/logged_out.html", response);
 }
 
-int _log_user_in(const char email_address[static EMAIL_CHAR_SIZE],
-				 m38_http_response *response) {
-	/* Creates a new session object for the specified user, and returns the right Set-Cookie
-	 * headers.
-	 */
-	char uuid[UUID_CHAR_SIZE + 1] = {0};
-	int rc = insert_new_session(email_address, uuid);
-	if (!rc)
-		return _api_failure(response, "Could not insert new session.");
+char *_lp_get_jwt(const char *email_address) {
+	if (!email_address)
+		return NULL;
 
-	char buf[128] = {0};
-	/* UUID has some null chars in it or something */
-	snprintf(buf, sizeof(buf), "sessionid=%s; HttpOnly; Path=/", uuid);
+	jwt_t *new_jwt = NULL;
+	jwt_alg_t opt_alg = JWT_ALG_RS256;
+
+	const char key_filename[] = "./rsa256.key";
+	FILE *key_fp = NULL;
+	size_t key_len = 0;
+	unsigned char key[2048] = {0};
+
+	key_fp = fopen(key_filename, "r");
+	if (!key_fp) {
+		m38_log_msg(LOG_ERR, "Could not open private key file for JWT: %s", key_filename);
+		goto err;
+	}
+
+	key_len = fread(key, 1, sizeof(key), key_fp);
+	fclose(key_fp);
+	key[key_len] = '\0';
+
+	int rc = jwt_new(&new_jwt);
+	if (rc != 0 || new_jwt == NULL) {
+		m38_log_msg(LOG_ERR, "Could not create new JWT: %i", rc);
+		goto err;
+	}
+
+	rc = jwt_set_alg(new_jwt, opt_alg, key, key_len);
+	if (!rc) {
+		m38_log_msg(LOG_ERR, "Could not set algorithm for JWT.");
+		goto err;
+	}
+
+	const time_t iat = time(NULL);
+	rc = jwt_add_grant_int(new_jwt, "iat", iat);
+	if (rc) {
+		m38_log_msg(LOG_ERR, "Error adding IAT.");
+		goto err;
+	}
+
+	rc = jwt_add_grant(new_jwt, "iss", "LOGPROJ");
+	rc = jwt_add_grant(new_jwt, "sub", email_address);
+	if (rc) {
+		m38_log_msg(LOG_ERR, "Error adding claim.");
+		goto err;
+	}
+
+	char *out = jwt_encode_str(new_jwt);
+	jwt_free(new_jwt);
+
+	return out;
+
+err:
+	jwt_free(new_jwt);
+	return NULL;
+}
+
+int _log_user_in(const char email_address[static EMAIL_CHAR_SIZE],
+				 const m38_http_request *request,
+				 m38_http_response *response) {
+	// char uuid[UUID_CHAR_SIZE + 1] = {0};
+	// int rc = insert_new_session(email_address, uuid);
+	// if (!rc) {
+	// 	m38_log_msg(LOG_ERR, "Could not insert new session.");
+	// 	return lp_error_page(request, response);
+	// }
+	
+	char *jwt = _lp_get_jwt(email_address);
+	if (!jwt)
+		return lp_error_page(request, response);
+
+	char buf[512] = {0};
+	snprintf(buf, sizeof(buf), "access_token=%s; HttpOnly; Path=/", jwt);
 	m38_insert_custom_header(response, "Set-Cookie", strlen("Set-Cookie"), buf, strnlen(buf, sizeof(buf)));
+	free(jwt);
 
 	JSON_Value *root_value = json_value_init_object();
 	JSON_Object *root_object = json_value_get_object(root_value);
@@ -143,7 +207,7 @@ int lp_api_user_register(const m38_http_request *request, m38_http_response *res
 	}
 
 	json_value_free(body_string);
-	return _log_user_in(email_address, response);
+	return _log_user_in(email_address, request, response);
 }
 
 int lp_api_user_login(const m38_http_request *request, m38_http_response *response) {
@@ -187,7 +251,7 @@ int lp_api_user_login(const m38_http_request *request, m38_http_response *respon
 
 	json_value_free(body_string);
 
-	return _log_user_in(email_address, response);
+	return _log_user_in(email_address, request, response);
 }
 
 int lp_api_user_projects(const m38_http_request *request, m38_http_response *response) {

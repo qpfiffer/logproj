@@ -26,8 +26,9 @@ const app = new Vue({
 		sharedState: store,
 	},
 	methods: {
-		login: function() {
+		_auth: function (url) {
 			this.sharedState.state.errors = [];
+			this.sharedState.state.new_user_error = null;
 
 			if (!this.sharedState.state.new_user.email_address) {
 				this.errors.push('Email address required.');
@@ -39,48 +40,26 @@ const app = new Vue({
 				return
 			}
 
-			var data = {	'email_address': this.sharedState.state.new_user.email_address,
-										'password': this.sharedState.state.new_user.password }
-			postData('/api/user/login', data).then((response) => {
+			var data = {'email_address': this.sharedState.state.new_user.email_address,
+									'password': this.sharedState.state.new_user.password }
+			postData(url, data).then((response) => {
 				if (response.success == true) {
 					this.sharedState.state.new_user.name = '';
 					this.sharedState.state.new_user.email = '';
 					this.sharedState.state.new_user_error = null;
 					window.location.href = '/app';
 				} else {
-					this.sharedState.state.new_user_error = response.body.error;
+					this.sharedState.state.new_user_error = response.error;
 				}
-			}, function(response) {
+			}, (response) => {
 				this.sharedState.state.new_user_error = 'Something went wrong.';
 			});
 		},
-		add_user: function() {
-			this.sharedState.state.errors = [];
-
-			if (!this.sharedState.state.new_user.email_address) {
-				this.errors.push('Email address required.');
-				return
-			}
-
-			if (!this.sharedState.state.new_user.password) {
-				this.errors.push('Password required.');
-				return
-			}
-
-			var data = {	'email_address': this.sharedState.state.new_user.email_address,
-										'password': this.sharedState.state.new_user.password }
-			postData('/api/user/register', data).then((response) => {
-			}, function(response) {
-				if (response.success == true) {
-					this.sharedState.state.new_user.name = '';
-					this.sharedState.state.new_user.email = '';
-					this.sharedState.state.new_user_error = null;
-					window.location.href = '/app';
-				} else {
-					this.sharedState.state.new_user_error = response.body.error;
-				}
-				this.new_user_error = 'Something went wrong.';
-			});
+		login: function() {
+			return this._auth('/api/user/login');
+		},
+		register: function() {
+			return this._auth('/api/user/register');
 		}
 	}
 })

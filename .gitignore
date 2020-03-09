@@ -1,3 +1,4 @@
 *.o
 *.sw[op]
 logproj
+rsa256.key
