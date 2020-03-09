@@ -182,20 +182,20 @@ JSON_Value * json_value_init_null   (void);
 JSON_Value * json_value_deep_copy   (const JSON_Value *value);
 void         json_value_free        (JSON_Value *value);
 
-JSON_Value_Type json_value_get_type   (const JSON_Value *value);
-JSON_Object *   json_value_get_object (const JSON_Value *value);
-JSON_Array  *   json_value_get_array  (const JSON_Value *value);
-const char  *   json_value_get_string (const JSON_Value *value);
-double          json_value_get_number (const JSON_Value *value);
-int             json_value_get_boolean(const JSON_Value *value);
+JSON_Value_Type parson_value_get_type   (const JSON_Value *value);
+JSON_Object *   parson_value_get_object (const JSON_Value *value);
+JSON_Array  *   parson_value_get_array  (const JSON_Value *value);
+const char  *   parson_value_get_string (const JSON_Value *value);
+double          parson_value_get_number (const JSON_Value *value);
+int             parson_value_get_boolean(const JSON_Value *value);
 
 /* Same as above, but shorter */
-JSON_Value_Type json_type   (const JSON_Value *value);
-JSON_Object *   json_object (const JSON_Value *value);
-JSON_Array  *   json_array  (const JSON_Value *value);
-const char  *   json_string (const JSON_Value *value);
-double          json_number (const JSON_Value *value);
-int             json_boolean(const JSON_Value *value);
+JSON_Value_Type parson_type   (const JSON_Value *value);
+JSON_Object *   parson_json_object (const JSON_Value *value);
+JSON_Array  *   parson_array  (const JSON_Value *value);
+const char  *   parson_string (const JSON_Value *value);
+double          parson_number (const JSON_Value *value);
+int             parson_boolean(const JSON_Value *value);
     
 #ifdef __cplusplus
 }

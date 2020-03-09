@@ -11,16 +11,13 @@
  */
 typedef struct user {
 	char uuid[UUID_CHAR_SIZE];
-	unsigned char _null_term_hax_1;
 
 	char email_address[EMAIL_CHAR_SIZE];
-	unsigned char _null_term_hax_2;
 
 	char password[SCRYPT_MCF_LEN];
-	unsigned char _null_term_hax_3;
 
 	time_t created_at;
-} __attribute__((__packed__)) user;
+} user;
 
 void create_user_key(const char email_address[static EMAIL_CHAR_SIZE], char outbuf[static MAX_KEY_SIZE]);
 char *serialize_user(const user *to_serialize);
@@ -31,15 +28,12 @@ unsigned int user_count();
 typedef struct api_key {
 	/* Unique identifier. */
 	char uuid[UUID_CHAR_SIZE];
-	unsigned char _null_term_hax_1;
 
 	/* Foreign key to the logged in user. */
 	char user_key[MAX_KEY_SIZE];
-	unsigned char _null_term_hax_2;
 
 	/* Name of the key */
 	char name[MAX_KEY_SIZE];
-	unsigned char _null_term_hax_3;
 
 	time_t created_at;
 } api_key;
@@ -52,11 +46,9 @@ api_key *deserialize_api_key(const char *json);
 typedef struct session {
 	/* Unique identifier. */
 	char uuid[UUID_CHAR_SIZE];
-	unsigned char _null_term_hax_1;
 
 	/* Foreign key to the logged in user. */
 	char user_key[MAX_KEY_SIZE];
-	unsigned char _null_term_hax_2;
 
 	/* Arbitrary data. */
 	/* char *data;

@@ -483,7 +483,7 @@ static JSON_Value * parse_value(const char **string, size_t nesting) {
 
 static JSON_Value * parse_object_value(const char **string, size_t nesting) {
     JSON_Value *output_value = json_value_init_object(), *new_value = NULL;
-    JSON_Object *output_object = json_value_get_object(output_value);
+    JSON_Object *output_object = parson_value_get_object(output_value);
     const char *new_key = NULL;
     if (output_value == NULL)
         return NULL;
@@ -532,7 +532,7 @@ static JSON_Value * parse_object_value(const char **string, size_t nesting) {
 
 static JSON_Value * parse_array_value(const char **string, size_t nesting) {
     JSON_Value *output_value = json_value_init_array(), *new_array_value = NULL;
-    JSON_Array *output_array = json_value_get_array(output_value);
+    JSON_Array *output_array = parson_value_get_array(output_value);
     if (!output_value)
         return NULL;
     SKIP_CHAR(string);
@@ -619,9 +619,9 @@ static size_t json_serialization_size_r(const JSON_Value *value, char *buf) {
     JSON_Object *object = NULL;
     size_t i = 0, count = 0;
     double num = 0.0;
-    switch (json_value_get_type(value)) {
+    switch (parson_value_get_type(value)) {
         case JSONArray:
-            array = json_value_get_array(value);
+            array = parson_value_get_array(value);
             count = json_array_get_count(array);
             result_size += 2; /* [ and ] brackets */
             if (count > 0)
@@ -632,7 +632,7 @@ static size_t json_serialization_size_r(const JSON_Value *value, char *buf) {
             }
             return result_size;
         case JSONObject:
-            object = json_value_get_object(value);
+            object = parson_value_get_object(value);
             count  = json_object_get_count(object);
             result_size += 2; /* { and } brackets */
             if (count > 0)
@@ -644,14 +644,14 @@ static size_t json_serialization_size_r(const JSON_Value *value, char *buf) {
             }
             return result_size;
         case JSONString:
-            return parson_strlen(json_value_get_string(value)) + 2; /* string and quotes */
+            return parson_strlen(parson_value_get_string(value)) + 2; /* string and quotes */
         case JSONBoolean:
-            if (json_value_get_boolean(value))
+            if (parson_value_get_boolean(value))
                 return 4; /* strlen("true"); */
             else
                 return 5; /* strlen("false"); */
         case JSONNumber:
-            num = json_value_get_number(value);
+            num = parson_value_get_number(value);
             if (num == ((double)(int)num) ) /*  check if num is integer */
                 return (size_t)sprintf(buf, "%d", (int)num);
             return (size_t)sprintf(buf, DOUBLE_SERIALIZATION_FORMAT, num);
@@ -672,9 +672,9 @@ char* json_serialize_to_buffer_r(const JSON_Value *value, char *buf)
     JSON_Object *object = NULL;
     size_t i = 0, count = 0;
     double num = 0.0;
-    switch (json_value_get_type(value)) {
+    switch (parson_value_get_type(value)) {
         case JSONArray:
-            array = json_value_get_array(value);
+            array = parson_value_get_array(value);
             count = json_array_get_count(array);
             PRINT_AND_SKIP(buf, "[");
             for (i = 0; i < count; i++) {
@@ -688,7 +688,7 @@ char* json_serialize_to_buffer_r(const JSON_Value *value, char *buf)
             PRINT_AND_SKIP(buf, "]");
             return buf;
         case JSONObject:
-            object = json_value_get_object(value);
+            object = parson_value_get_object(value);
             count  = json_object_get_count(object);
             PRINT_AND_SKIP(buf, "{");
             for (i = 0; i < count; i++) {
@@ -707,18 +707,18 @@ char* json_serialize_to_buffer_r(const JSON_Value *value, char *buf)
             PRINT_AND_SKIP(buf, "}");
             return buf;
         case JSONString:
-            string = json_value_get_string(value);
+            string = parson_value_get_string(value);
             buf = json_serialize_string(string, buf);
             return buf;
         case JSONBoolean:
-            if (json_value_get_boolean(value)) {
+            if (parson_value_get_boolean(value)) {
                 PRINT_AND_SKIP(buf, "true");
             } else {
                 PRINT_AND_SKIP(buf, "false");
             }
             return buf;
         case JSONNumber:
-            num = json_value_get_number(value);
+            num = parson_value_get_number(value);
             if (num == ((double)(int)num)) { /*  check if num is integer */
                 PRINTF_AND_SKIP(buf, "%d", (int)num);
             } else {
@@ -815,51 +815,51 @@ JSON_Value * json_object_get_value(const JSON_Object *object, const char *name) 
 }
 
 const char * json_object_get_string(const JSON_Object *object, const char *name) {
-    return json_value_get_string(json_object_get_value(object, name));
+    return parson_value_get_string(json_object_get_value(object, name));
 }
 
 double json_object_get_number(const JSON_Object *object, const char *name) {
-    return json_value_get_number(json_object_get_value(object, name));
+    return parson_value_get_number(json_object_get_value(object, name));
 }
 
 JSON_Object * json_object_get_object(const JSON_Object *object, const char *name) {
-    return json_value_get_object(json_object_get_value(object, name));
+    return parson_value_get_object(json_object_get_value(object, name));
 }
 
 JSON_Array * json_object_get_array(const JSON_Object *object, const char *name) {
-    return json_value_get_array(json_object_get_value(object, name));
+    return parson_value_get_array(json_object_get_value(object, name));
 }
 
 int json_object_get_boolean(const JSON_Object *object, const char *name) {
-    return json_value_get_boolean(json_object_get_value(object, name));
+    return parson_value_get_boolean(json_object_get_value(object, name));
 }
 
 JSON_Value * json_object_dotget_value(const JSON_Object *object, const char *name) {
     const char *dot_position = strchr(name, '.');
     if (!dot_position)
         return json_object_get_value(object, name);
-    object = json_value_get_object(json_object_nget_value(object, name, dot_position - name));
+    object = parson_value_get_object(json_object_nget_value(object, name, dot_position - name));
     return json_object_dotget_value(object, dot_position + 1);
 }
 
 const char * json_object_dotget_string(const JSON_Object *object, const char *name) {
-    return json_value_get_string(json_object_dotget_value(object, name));
+    return parson_value_get_string(json_object_dotget_value(object, name));
 }
 
 double json_object_dotget_number(const JSON_Object *object, const char *name) {
-    return json_value_get_number(json_object_dotget_value(object, name));
+    return parson_value_get_number(json_object_dotget_value(object, name));
 }
 
 JSON_Object * json_object_dotget_object(const JSON_Object *object, const char *name) {
-    return json_value_get_object(json_object_dotget_value(object, name));
+    return parson_value_get_object(json_object_dotget_value(object, name));
 }
 
 JSON_Array * json_object_dotget_array(const JSON_Object *object, const char *name) {
-    return json_value_get_array(json_object_dotget_value(object, name));
+    return parson_value_get_array(json_object_dotget_value(object, name));
 }
 
 int json_object_dotget_boolean(const JSON_Object *object, const char *name) {
-    return json_value_get_boolean(json_object_dotget_value(object, name));
+    return parson_value_get_boolean(json_object_dotget_value(object, name));
 }
 
 size_t json_object_get_count(const JSON_Object *object) {
@@ -880,23 +880,23 @@ JSON_Value * json_array_get_value(const JSON_Array *array, size_t index) {
 }
 
 const char * json_array_get_string(const JSON_Array *array, size_t index) {
-    return json_value_get_string(json_array_get_value(array, index));
+    return parson_value_get_string(json_array_get_value(array, index));
 }
 
 double json_array_get_number(const JSON_Array *array, size_t index) {
-    return json_value_get_number(json_array_get_value(array, index));
+    return parson_value_get_number(json_array_get_value(array, index));
 }
 
 JSON_Object * json_array_get_object(const JSON_Array *array, size_t index) {
-    return json_value_get_object(json_array_get_value(array, index));
+    return parson_value_get_object(json_array_get_value(array, index));
 }
 
 JSON_Array * json_array_get_array(const JSON_Array *array, size_t index) {
-    return json_value_get_array(json_array_get_value(array, index));
+    return parson_value_get_array(json_array_get_value(array, index));
 }
 
 int json_array_get_boolean(const JSON_Array *array, size_t index) {
-    return json_value_get_boolean(json_array_get_value(array, index));
+    return parson_value_get_boolean(json_array_get_value(array, index));
 }
 
 size_t json_array_get_count(const JSON_Array *array) {
@@ -904,32 +904,32 @@ size_t json_array_get_count(const JSON_Array *array) {
 }
 
 /* JSON Value API */
-JSON_Value_Type json_value_get_type(const JSON_Value *value) {
+JSON_Value_Type parson_value_get_type(const JSON_Value *value) {
     return value ? value->type : JSONError;
 }
 
-JSON_Object * json_value_get_object(const JSON_Value *value) {
-    return json_value_get_type(value) == JSONObject ? value->value.object : NULL;
+JSON_Object * parson_value_get_object(const JSON_Value *value) {
+    return parson_value_get_type(value) == JSONObject ? value->value.object : NULL;
 }
 
-JSON_Array * json_value_get_array(const JSON_Value *value) {
-    return json_value_get_type(value) == JSONArray ? value->value.array : NULL;
+JSON_Array * parson_value_get_array(const JSON_Value *value) {
+    return parson_value_get_type(value) == JSONArray ? value->value.array : NULL;
 }
 
-const char * json_value_get_string(const JSON_Value *value) {
-    return json_value_get_type(value) == JSONString ? value->value.string : NULL;
+const char * parson_value_get_string(const JSON_Value *value) {
+    return parson_value_get_type(value) == JSONString ? value->value.string : NULL;
 }
 
-double json_value_get_number(const JSON_Value *value) {
-    return json_value_get_type(value) == JSONNumber ? value->value.number : 0;
+double parson_value_get_number(const JSON_Value *value) {
+    return parson_value_get_type(value) == JSONNumber ? value->value.number : 0;
 }
 
-int json_value_get_boolean(const JSON_Value *value) {
-    return json_value_get_type(value) == JSONBoolean ? value->value.boolean : -1;
+int parson_value_get_boolean(const JSON_Value *value) {
+    return parson_value_get_type(value) == JSONBoolean ? value->value.boolean : -1;
 }
 
 void json_value_free(JSON_Value *value) {
-    switch (json_value_get_type(value)) {
+    switch (parson_value_get_type(value)) {
         case JSONObject:
             json_object_free(value->value.object);
             break;
@@ -1007,23 +1007,23 @@ JSON_Value * json_value_init_null(void) {
     return new_value;
 }
 
-JSON_Value * json_value_deep_copy(const JSON_Value *value) {
+JSON_Value * parson_value_deep_copy(const JSON_Value *value) {
     size_t i = 0;
     JSON_Value *return_value = NULL, *temp_value_copy = NULL, *temp_value = NULL;
     const char *temp_string = NULL, *temp_string_copy = NULL, *temp_key = NULL;
     JSON_Array *temp_array = NULL, *temp_array_copy = NULL;
     JSON_Object *temp_object = NULL, *temp_object_copy = NULL;
     
-    switch (json_value_get_type(value)) {
+    switch (parson_value_get_type(value)) {
         case JSONArray:
-            temp_array = json_value_get_array(value);
+            temp_array = parson_value_get_array(value);
             return_value = json_value_init_array();
             if (return_value == NULL)
                 return NULL;
-            temp_array_copy = json_value_get_array(return_value);
+            temp_array_copy = parson_value_get_array(return_value);
             for (i = 0; i < json_array_get_count(temp_array); i++) {
                 temp_value = json_array_get_value(temp_array, i);
-                temp_value_copy = json_value_deep_copy(temp_value);
+                temp_value_copy = parson_value_deep_copy(temp_value);
                 if (temp_value_copy == NULL) {
                     json_value_free(return_value);
                     return NULL;
@@ -1036,15 +1036,15 @@ JSON_Value * json_value_deep_copy(const JSON_Value *value) {
             }
             return return_value;
         case JSONObject:
-            temp_object = json_value_get_object(value);
+            temp_object = parson_value_get_object(value);
             return_value = json_value_init_object();
             if (return_value == NULL)
                 return NULL;
-            temp_object_copy = json_value_get_object(return_value);
+            temp_object_copy = parson_value_get_object(return_value);
             for (i = 0; i < json_object_get_count(temp_object); i++) {
                 temp_key = json_object_get_name(temp_object, i);
                 temp_value = json_object_get_value(temp_object, temp_key);
-                temp_value_copy = json_value_deep_copy(temp_value);
+                temp_value_copy = parson_value_deep_copy(temp_value);
                 if (temp_value_copy == NULL) {
                     json_value_free(return_value);
                     return NULL;
@@ -1057,11 +1057,11 @@ JSON_Value * json_value_deep_copy(const JSON_Value *value) {
             }
             return return_value;
         case JSONBoolean:
-            return json_value_init_boolean(json_value_get_boolean(value));
+            return json_value_init_boolean(parson_value_get_boolean(value));
         case JSONNumber:
-            return json_value_init_number(json_value_get_number(value));
+            return json_value_init_number(parson_value_get_number(value));
         case JSONString:
-            temp_string = json_value_get_string(value);
+            temp_string = parson_value_get_string(value);
             temp_string_copy = parson_strdup(temp_string);
             if (temp_string_copy == NULL)
                 return NULL;
@@ -1345,14 +1345,14 @@ JSON_Status json_validate(const JSON_Value *schema, const JSON_Value *value) {
     size_t i = 0, count = 0;
     if (schema == NULL || value == NULL)
         return JSONFailure;
-    schema_type = json_value_get_type(schema);
-    value_type = json_value_get_type(value);
+    schema_type = parson_value_get_type(schema);
+    value_type = parson_value_get_type(value);
     if (schema_type != value_type && schema_type != JSONNull) /* null represents all values */
         return JSONFailure;
     switch (schema_type) {
         case JSONArray:
-            schema_array = json_value_get_array(schema);
-            value_array = json_value_get_array(value);
+            schema_array = parson_value_get_array(schema);
+            value_array = parson_value_get_array(value);
             count = json_array_get_count(schema_array);
             if (count == 0)
                 return JSONSuccess; /* Empty array allows all types */
@@ -1366,8 +1366,8 @@ JSON_Status json_validate(const JSON_Value *schema, const JSON_Value *value) {
             }
             return JSONSuccess;
         case JSONObject:
-            schema_object = json_value_get_object(schema);
-            value_object = json_value_get_object(value);
+            schema_object = parson_value_get_object(schema);
+            value_object = parson_value_get_object(value);
             count = json_object_get_count(schema_object);
             if (count == 0)
                 return JSONSuccess; /* Empty object allows all objects */
@@ -1390,37 +1390,37 @@ JSON_Status json_validate(const JSON_Value *schema, const JSON_Value *value) {
     }
 }
 
-JSON_Status json_value_equals(const JSON_Value *a, const JSON_Value *b) {
+JSON_Status parson_value_equals(const JSON_Value *a, const JSON_Value *b) {
     JSON_Object *a_object = NULL, *b_object = NULL;
     JSON_Array *a_array = NULL, *b_array = NULL;
     const char *a_string = NULL, *b_string = NULL;
     const char *key = NULL;
     size_t a_count = 0, b_count = 0, i = 0;
     JSON_Value_Type a_type, b_type;
-    a_type = json_value_get_type(a);
-    b_type = json_value_get_type(b);
+    a_type = parson_value_get_type(a);
+    b_type = parson_value_get_type(b);
     if (a_type != b_type) {
         return 0;
     }
     switch (a_type) {
         case JSONArray:
-            a_array = json_value_get_array(a);
-            b_array = json_value_get_array(b);
+            a_array = parson_value_get_array(a);
+            b_array = parson_value_get_array(b);
             a_count = json_array_get_count(a_array);
             b_count = json_array_get_count(b_array);
             if (a_count != b_count) {
                 return 0;
             }
             for (i = 0; i < a_count; i++) {
-                if (!json_value_equals(json_array_get_value(a_array, i),
+                if (!parson_value_equals(json_array_get_value(a_array, i),
                                        json_array_get_value(b_array, i))) {
                     return 0;
                 }
             }
             return 1;
         case JSONObject:
-            a_object = json_value_get_object(a);
-            b_object = json_value_get_object(b);
+            a_object = parson_value_get_object(a);
+            b_object = parson_value_get_object(b);
             a_count = json_object_get_count(a_object);
             b_count = json_object_get_count(b_object);
             if (a_count != b_count) {
@@ -1428,20 +1428,20 @@ JSON_Status json_value_equals(const JSON_Value *a, const JSON_Value *b) {
             }
             for (i = 0; i < a_count; i++) {
                 key = json_object_get_name(a_object, i);
-                if (!json_value_equals(json_object_get_value(a_object, key),
+                if (!parson_value_equals(json_object_get_value(a_object, key),
                                        json_object_get_value(b_object, key))) {
                     return 0;
                 }
             }
             return 1;
         case JSONString:
-            a_string = json_value_get_string(a);
-            b_string = json_value_get_string(b);
+            a_string = parson_value_get_string(a);
+            b_string = parson_value_get_string(b);
             return strcmp(a_string, b_string) == 0;
         case JSONBoolean:
-            return json_value_get_boolean(a) == json_value_get_boolean(b);
+            return parson_value_get_boolean(a) == parson_value_get_boolean(b);
         case JSONNumber:
-            return fabs(json_value_get_number(a) - json_value_get_number(b)) < 0.000001; /* EPSILON */
+            return fabs(parson_value_get_number(a) - parson_value_get_number(b)) < 0.000001; /* EPSILON */
         case JSONError:
             return 1;
         case JSONNull:
@@ -1451,26 +1451,26 @@ JSON_Status json_value_equals(const JSON_Value *a, const JSON_Value *b) {
     }
 }
 
-JSON_Value_Type json_type(const JSON_Value *value) {
-    return json_value_get_type(value);
+JSON_Value_Type parson_type(const JSON_Value *value) {
+    return parson_value_get_type(value);
 }
 
-JSON_Object * json_object (const JSON_Value *value) {
-    return json_value_get_object(value);
+JSON_Object * parson_json_object (const JSON_Value *value) {
+    return parson_value_get_object(value);
 }
 
-JSON_Array * json_array  (const JSON_Value *value) {
-    return json_value_get_array(value);
+JSON_Array * parson_array  (const JSON_Value *value) {
+    return parson_value_get_array(value);
 }
 
-const char * json_string (const JSON_Value *value) {
-    return json_value_get_string(value);
+const char * parson_string (const JSON_Value *value) {
+    return parson_value_get_string(value);
 }
 
-double json_number (const JSON_Value *value) {
-    return json_value_get_number(value);
+double parson_number (const JSON_Value *value) {
+    return parson_value_get_number(value);
 }
 
-int json_boolean(const JSON_Value *value) {
-    return json_value_get_boolean(value);
+int parson_boolean(const JSON_Value *value) {
+    return parson_value_get_boolean(value);
 }

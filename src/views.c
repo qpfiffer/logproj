@@ -30,7 +30,7 @@ int lp_static_handler(const m38_http_request *request, m38_http_response *respon
 
 static int _api_failure(m38_http_response *response, const char *error) {
 	JSON_Value *root_value = json_value_init_object();
-	JSON_Object *root_object = json_value_get_object(root_value);
+	JSON_Object *root_object = parson_value_get_object(root_value);
 
 	JSON_Value *data_value = json_value_init_object();
 
@@ -46,7 +46,7 @@ static int _api_failure(m38_http_response *response, const char *error) {
 
 static int _api_success(m38_http_response *response, JSON_Value *data_value) {
 	JSON_Value *root_value = json_value_init_object();
-	JSON_Object *root_object = json_value_get_object(root_value);
+	JSON_Object *root_object = parson_value_get_object(root_value);
 
 	json_object_set_boolean(root_object, "success", 1);
 	json_object_set_string(root_object, "error", "");
@@ -104,13 +104,13 @@ char *_lp_get_jwt(const char *email_address) {
 	key[key_len] = '\0';
 
 	int rc = jwt_new(&new_jwt);
-	if (rc != 0 || new_jwt == NULL) {
+	if (rc || !new_jwt) {
 		m38_log_msg(LOG_ERR, "Could not create new JWT: %i", rc);
 		goto err;
 	}
 
 	rc = jwt_set_alg(new_jwt, opt_alg, key, key_len);
-	if (!rc) {
+	if (rc) {
 		m38_log_msg(LOG_ERR, "Could not set algorithm for JWT.");
 		goto err;
 	}
@@ -156,10 +156,10 @@ int _log_user_in(const char email_address[static EMAIL_CHAR_SIZE],
 	char buf[512] = {0};
 	snprintf(buf, sizeof(buf), "access_token=%s; HttpOnly; Path=/", jwt);
 	m38_insert_custom_header(response, "Set-Cookie", strlen("Set-Cookie"), buf, strnlen(buf, sizeof(buf)));
-	free(jwt);
+	jwt_free_str(jwt);
 
 	JSON_Value *root_value = json_value_init_object();
-	JSON_Object *root_object = json_value_get_object(root_value);
+	JSON_Object *root_object = parson_value_get_object(root_value);
 	json_object_set_boolean(root_object, "pretend_this_is_a_jwt", 1);
 
 	return _api_success(response, root_value);
@@ -173,7 +173,7 @@ int lp_api_user_register(const m38_http_request *request, m38_http_response *res
 	if (!body_string)
 		return _api_failure(response, "Could not parse JSON object.");
 
-	JSON_Object *new_user_object = json_value_get_object(body_string);
+	JSON_Object *new_user_object = parson_value_get_object(body_string);
 	if (!new_user_object) {
 		json_value_free(body_string);
 		return _api_failure(response, "Could not get object from JSON.");
@@ -217,7 +217,7 @@ int lp_api_user_login(const m38_http_request *request, m38_http_response *respon
 	if (!body_string)
 		return _api_failure(response, "Could not parse JSON object.");
 
-	JSON_Object *new_user_object = json_value_get_object(body_string);
+	JSON_Object *new_user_object = parson_value_get_object(body_string);
 	if (!new_user_object) {
 		json_value_free(body_string);
 		return _api_failure(response, "Could not get object from JSON.");

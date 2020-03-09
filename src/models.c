@@ -17,7 +17,7 @@ char *serialize_user(const user *to_serialize) {
 		return NULL;
 
 	JSON_Value *root_value = json_value_init_object();
-	JSON_Object *root_object = json_value_get_object(root_value);
+	JSON_Object *root_object = parson_value_get_object(root_value);
 
 	char *serialized_string = NULL;
 
@@ -59,7 +59,7 @@ user *deserialize_user(const char *json) {
 	user *to_return = calloc(1, sizeof(user));
 
 	JSON_Value *serialized = json_parse_string(json);
-	JSON_Object *user_object = json_value_get_object(serialized);
+	JSON_Object *user_object = parson_value_get_object(serialized);
 
 	strncpy(to_return->email_address, json_object_get_string(user_object, "email_address"), sizeof(to_return->email_address));
 	strncpy(to_return->password, json_object_get_string(user_object, "password"), sizeof(to_return->password));
@@ -79,7 +79,7 @@ char *serialize_session(const session *to_serialize) {
 		return NULL;
 
 	JSON_Value *root_value = json_value_init_object();
-	JSON_Object *root_object = json_value_get_object(root_value);
+	JSON_Object *root_object = parson_value_get_object(root_value);
 
 	char *serialized_string = NULL;
 
@@ -100,7 +100,7 @@ session *deserialize_session(const char *json) {
 	session *to_return = calloc(1, sizeof(session));
 
 	JSON_Value *serialized = json_parse_string(json);
-	JSON_Object *session_object = json_value_get_object(serialized);
+	JSON_Object *session_object = parson_value_get_object(serialized);
 
 	strncpy(to_return->uuid, json_object_get_string(session_object, "uuid"), sizeof(to_return->uuid));
 	strncpy(to_return->user_key, json_object_get_string(session_object, "user_key"), sizeof(to_return->user_key));

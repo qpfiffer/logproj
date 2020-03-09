@@ -2,3 +2,4 @@
 *.sw[op]
 logproj
 rsa256.key
+rsa256.key.pub
