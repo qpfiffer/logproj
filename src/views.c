@@ -11,7 +11,7 @@
 #include "models.h"
 #include "views.h"
 
-int index_handler(const m38_http_request *request, m38_http_response *response) {
+int lp_index_handler(const m38_http_request *request, m38_http_response *response) {
 	char *cookie_value = m38_get_header_value_request(request, "Cookie");
 	/* TODO: Redirect to app? */
 	free(cookie_value);
@@ -20,7 +20,7 @@ int index_handler(const m38_http_request *request, m38_http_response *response) 
 	return m38_render_file(ctext, "./templates/index.html", response);
 }
 
-int static_handler(const m38_http_request *request, m38_http_response *response) {
+int lp_static_handler(const m38_http_request *request, m38_http_response *response) {
 	/* Remove the leading slash: */
 	const char *file_path = request->resource + sizeof(char);
 	return m38_mmap_file(file_path, response);
@@ -56,7 +56,7 @@ static int _api_success(m38_http_response *response, JSON_Value *data_value) {
 	return m38_return_raw_buffer(output, strlen(output), response);
 }
 
-int app_logout(const m38_http_request *request, m38_http_response *response) {
+int lp_app_logout(const m38_http_request *request, m38_http_response *response) {
 	greshunkel_ctext *ctext = gshkl_init_context();
 
 	char *cookie_string = m38_get_header_value_request(request, "Cookie");
@@ -102,7 +102,7 @@ int _log_user_in(const char email_address[static EMAIL_CHAR_SIZE],
 }
 
 /* API HANDLERS */
-int api_user_register(const m38_http_request *request, m38_http_response *response) {
+int lp_api_user_register(const m38_http_request *request, m38_http_response *response) {
 	/* Deserialize the JSON object. */
 	const unsigned char *full_body = request->full_body;
 	JSON_Value *body_string = json_parse_string((const char *)full_body);
@@ -146,7 +146,7 @@ int api_user_register(const m38_http_request *request, m38_http_response *respon
 	return _log_user_in(email_address, response);
 }
 
-int api_user_login(const m38_http_request *request, m38_http_response *response) {
+int lp_api_user_login(const m38_http_request *request, m38_http_response *response) {
 	/* Deserialize the JSON object. */
 	const unsigned char *full_body = request->full_body;
 	JSON_Value *body_string = json_parse_string((const char *)full_body);
@@ -190,20 +190,26 @@ int api_user_login(const m38_http_request *request, m38_http_response *response)
 	return _log_user_in(email_address, response);
 }
 
-int api_user_projects(const m38_http_request *request, m38_http_response *response) {
+int lp_api_user_projects(const m38_http_request *request, m38_http_response *response) {
 	(void)request;
 	JSON_Value *root_value = json_value_init_array();
 	return _api_success(response, root_value);
 }
 
-int api_user(const m38_http_request *request, m38_http_response *response) {
+int lp_api_user(const m38_http_request *request, m38_http_response *response) {
 	(void)request;
 	JSON_Value *root_value = json_value_init_object();
 	return _api_success(response, root_value);
 }
 
-int app_main(const m38_http_request *request, m38_http_response *response) {
+int lp_app_main(const m38_http_request *request, m38_http_response *response) {
 	(void)request;
 	greshunkel_ctext *ctext = gshkl_init_context();
 	return m38_render_file(ctext, "./templates/dashboard.html", response);
+}
+
+int lp_error_page(const m38_http_request *request, m38_http_response *response) {
+	(void)request;
+	greshunkel_ctext *ctext = gshkl_init_context();
+	return m38_render_file(ctext, "./templates/error.html", response);
 }

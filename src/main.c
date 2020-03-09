@@ -16,14 +16,15 @@ void term(int signum) {
 }
 
 static const m38_route all_routes[] = {
-	{"POST", "api_user_login", "^/api/user/login$", 0, &api_user_login, &m38_heap_cleanup},
-	{"POST", "api_user_register", "^/api/user/register$", 0, &api_user_register, &m38_heap_cleanup},
-	{"POST", "api_user", "^/api/user$", 0, &api_user, &m38_heap_cleanup},
-	{"POST", "api_user_projects", "^/api/user/projects$", 0, &api_user_projects, &m38_heap_cleanup},
-	{"GET", "app_logout", "^/app/logout$", 0, &app_logout, &m38_heap_cleanup},
-	{"GET", "app_main", "^/app$", 0, &app_main, &m38_heap_cleanup},
-	{"GET", "generic_static", "^/static/[a-zA-Z0-9/_-]*\\.[a-zA-Z]*$", 0, &static_handler, &m38_mmap_cleanup},
-	{"GET", "root_handler", "^/$", 0, &index_handler, &m38_heap_cleanup},
+	{"POST", "lp_api_user_login", "^/api/user/login$", 0, &lp_api_user_login, &m38_heap_cleanup},
+	{"POST", "lp_api_user_register", "^/api/user/register$", 0, &lp_api_user_register, &m38_heap_cleanup},
+	{"POST", "lp_api_user", "^/api/user$", 0, &lp_api_user, &m38_heap_cleanup},
+	{"POST", "lp_api_user_projects", "^/api/user/projects$", 0, &lp_api_user_projects, &m38_heap_cleanup},
+	{"GET", "lp_app_logout", "^/app/logout$", 0, &lp_app_logout, &m38_heap_cleanup},
+	{"GET", "lp_app_main", "^/app$", 0, &lp_app_main, &m38_heap_cleanup},
+	{"GET", "lp_generic_static", "^/static/[a-zA-Z0-9/_-]*\\.[a-zA-Z]*$", 0, &lp_static_handler, &m38_mmap_cleanup},
+	{"GET", "lp_root_handler", "^/$", 0, &lp_index_handler, &m38_heap_cleanup},
+	{"GET", "lp_error_page", "^/error", 0, &lp_error_page, &m38_heap_cleanup},
 };
 
 int main(int argc, char *argv[]) {
