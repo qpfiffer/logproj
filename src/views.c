@@ -332,14 +332,33 @@ int lp_api_user_projects(const m38_http_request *request, m38_http_response *res
 }
 
 int lp_api_user(const m38_http_request *request, m38_http_response *response) {
-	(void)request;
+	user *current_user = _lp_get_user_from_request(request);
 	JSON_Value *root_value = json_value_init_object();
+
+	if (current_user) {
+		JSON_Object *root_object = parson_value_get_object(root_value);
+		json_object_set_string(root_object, "email_address", current_user->email_address);
+		json_object_set_string(root_object, "id", current_user->uuid);
+	}
+
 	return _api_success(response, root_value);
 }
 
 int lp_app_main(const m38_http_request *request, m38_http_response *response) {
-	(void)request;
+	user *current_user = _lp_get_user_from_request(request);
+	if (!current_user) {
+		m38_insert_custom_header(response,
+				"Location", strlen("Location"),
+				"/", strlen("/"));
+		return 302;
+	}
+
 	greshunkel_ctext *ctext = gshkl_init_context();
+	greshunkel_ctext *user_ctext = gshkl_init_context();
+	gshkl_add_string(user_ctext, "email_address", current_user->email_address);
+	gshkl_add_string(user_ctext, "uuid", current_user->uuid);
+	gshkl_add_sub_context(ctext, "user", user_ctext);
+
 	return m38_render_file(ctext, "./templates/dashboard.html", response);
 }
 
