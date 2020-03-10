@@ -17,3 +17,5 @@ struct session *get_session(const char uuid[static UUID_CHAR_SIZE], char out_key
 int set_session(const struct session *session);
 int insert_new_session(const char email_address[static EMAIL_CHAR_SIZE], char out_uuid[static UUID_CHAR_SIZE]);
 int delete_sessions(const char session_id[static UUID_CHAR_SIZE]);
+
+PGresult *get_projects_for_user(const char *user_id);

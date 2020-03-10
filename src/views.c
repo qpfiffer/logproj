@@ -30,8 +30,12 @@ user *_lp_get_user_from_request(const m38_http_request *request) {
 	jwt_valid_t *jwt_valid = NULL;
 
 	/* Cookie string data from m38 */
+	char *access_token = NULL;
 	char *cookie_string = m38_get_header_value_request(request, "Cookie");
-	char *access_token = m38_get_cookie_value(cookie_string, strlen(cookie_string), "access_token");
+	if (!cookie_string)
+		goto err;
+
+	access_token = m38_get_cookie_value(cookie_string, strlen(cookie_string), "access_token");
 	free(cookie_string);
 	cookie_string = NULL;
 
@@ -354,11 +358,27 @@ int lp_app_main(const m38_http_request *request, m38_http_response *response) {
 	}
 
 	greshunkel_ctext *ctext = gshkl_init_context();
+
 	greshunkel_ctext *user_ctext = gshkl_init_context();
 	gshkl_add_string(user_ctext, "email_address", current_user->email_address);
 	gshkl_add_string(user_ctext, "uuid", current_user->uuid);
 	gshkl_add_sub_context(ctext, "user", user_ctext);
 
+	greshunkel_var projects_array = gshkl_add_array(ctext, "PROJECTS");
+	PGresult *projects_r = get_projects_for_user(current_user->uuid);
+	if (projects_r) {
+		int i = 0;
+		for (i = 0; i < PQntuples(projects_r); i++) {
+			greshunkel_ctext *project_ctext = gshkl_init_context();
+			gshkl_add_string(project_ctext, "id", PQgetvalue(projects_r, i, 0));
+			gshkl_add_string(project_ctext, "name", PQgetvalue(projects_r, i, 0));
+			gshkl_add_sub_context_to_loop(&projects_array, project_ctext);
+		}
+
+		PQclear(projects_r);
+	}
+
+	free(current_user);
 	return m38_render_file(ctext, "./templates/dashboard.html", response);
 }
 

@@ -11,10 +11,13 @@
  */
 typedef struct user {
 	char uuid[UUID_CHAR_SIZE];
+	char null_term_hax_1;
 
 	char email_address[EMAIL_CHAR_SIZE];
+	char null_term_hax_2;
 
 	char password[SCRYPT_MCF_LEN];
+	char null_term_hax_3;
 
 	time_t created_at;
 } user;
