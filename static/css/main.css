@@ -71,17 +71,3 @@ input:focus, textarea:focus {
 form input {
 	margin-bottom: 1em;
 }
-.working_header {
-	border-bottom: solid 2px;
-}
-.working_header h3 {
-	margin-top: 0.5em;
-	margin-bottom: 0.5em;
-}
-ul.logged_in_list {
-	list-style: none;
-}
-.logged_in_list li {
-	display: inline-block;
-	vertical-align: middle;
-}

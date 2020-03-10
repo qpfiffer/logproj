@@ -1,0 +1,44 @@
+/* vim: set ts=4 sw=4 noet : */
+header {
+	width: 75%;
+	display: grid;
+	grid-template-columns: repeat(12, 1fr);
+	border-bottom: solid 2px;
+	justify-items: center;
+	margin: 0 auto;
+}
+header h3 {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+.grid_left {
+	grid-row: 1;
+}
+.grid_right {
+	grid-column: 12;
+	grid-row: 1;
+}
+.container {
+	display: grid;
+	grid-template-columns: repeat(12, 1fr);
+	grid-gap: 10px;
+	grid-auto-rows: minmax(100px, auto);
+	margin: 0 auto;
+}
+.narrow_column {
+	grid-column: 1 / span 12;
+	grid-row: 1;
+}
+.wide_column {
+	grid-column: 4 / span 12;
+	grid-row: 1;
+	padding-right: 2em;
+	padding-left: 0.5em;
+}
+ul.logged_in_list {
+	list-style: none;
+}
+.logged_in_list li {
+	display: inline-block;
+	vertical-align: middle;
+}
