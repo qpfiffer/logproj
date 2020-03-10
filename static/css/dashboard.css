@@ -20,20 +20,22 @@ header h3 {
 }
 .container {
 	display: grid;
-	grid-template-columns: repeat(12, 1fr);
+	grid-template-columns: 25% 1fr;
 	grid-gap: 10px;
-	grid-auto-rows: minmax(100px, auto);
 	margin: 0 auto;
 }
+.container > * {
+	min-width: 0;
+}
 .narrow_column {
-	grid-column: 1 / span 12;
+	grid-column: 1 / span 4;
 	grid-row: 1;
+	max-width: 100%;
 }
 .wide_column {
-	grid-column: 4 / span 12;
+	grid-column: 3 / span 12;
 	grid-row: 1;
-	padding-right: 2em;
-	padding-left: 0.5em;
+	max-width: 100%;
 }
 ul.logged_in_list {
 	list-style: none;
@@ -41,4 +43,24 @@ ul.logged_in_list {
 .logged_in_list li {
 	display: inline-block;
 	vertical-align: middle;
+}
+.logfile {
+	max-width: 100%;
+	overflow: hidden;
+}
+.logfile pre {
+	font-size: 12px;
+	padding: 1px 3px;
+	color: default;
+	border: 1px solid #e1e1e8;
+	tab-size: 4;
+	-moz-tab-size: 4;
+	-o-tab-size: 4;
+	-webkit-tab-size: 4;
+	background-color: #f7f7f9;
+	border-radius: 3px;
+	font-family: monospace;
+	white-space: pre;
+	margin: 1em 0px;
+	overflow-x: scroll;
 }
