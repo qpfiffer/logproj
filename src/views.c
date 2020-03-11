@@ -387,3 +387,22 @@ int lp_error_page(const m38_http_request *request, m38_http_response *response) 
 	greshunkel_ctext *ctext = gshkl_init_context();
 	return m38_render_file(ctext, "./templates/error.html", response);
 }
+
+int lp_app_new_project(const m38_http_request *request, m38_http_response *response) {
+	user *current_user = _lp_get_user_from_request(request);
+	if (!current_user) {
+		m38_insert_custom_header(response,
+				"Location", strlen("Location"),
+				"/", strlen("/"));
+		return 302;
+	}
+
+	greshunkel_ctext *ctext = gshkl_init_context();
+
+	greshunkel_ctext *user_ctext = gshkl_init_context();
+	gshkl_add_string(user_ctext, "email_address", current_user->email_address);
+	gshkl_add_string(user_ctext, "uuid", current_user->uuid);
+	gshkl_add_sub_context(ctext, "user", user_ctext);
+
+	return m38_render_file(ctext, "./templates/new_project.html", response);
+}

@@ -22,6 +22,7 @@ static const m38_route all_routes[] = {
 	{"POST", "lp_api_user_projects", "^/api/user/projects$", 0, &lp_api_user_projects, &m38_heap_cleanup},
 	{"GET", "lp_app_logout", "^/app/logout$", 0, &lp_app_logout, &m38_heap_cleanup},
 	{"GET", "lp_app_main", "^/app$", 0, &lp_app_main, &m38_heap_cleanup},
+	{"GET", "lp_app_new_project", "^/app/new_project$", 0, &lp_app_new_project, &m38_heap_cleanup},
 	{"GET", "lp_generic_static", "^/static/[a-zA-Z0-9/_-]*\\.[a-zA-Z]*$", 0, &lp_static_handler, &m38_mmap_cleanup},
 	{"GET", "lp_root_handler", "^/$", 0, &lp_index_handler, &m38_heap_cleanup},
 	{"GET", "lp_error_page", "^/error", 0, &lp_error_page, &m38_heap_cleanup},
