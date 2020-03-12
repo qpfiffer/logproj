@@ -31,7 +31,7 @@ COPY static /app/static
 COPY Makefile /app/Makefile
 
 RUN cd /app; make
-COPY run/logproj /etc/service/logproj/run
+COPY run/logproj.sh /etc/service/logproj/run
 
 EXPOSE 8666
 CMD ["/etc/service/logproj/run"]
