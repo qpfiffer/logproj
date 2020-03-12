@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <sys/time.h>
 #include <string.h>
-#include <uuid/uuid.h>
 
 #include <38-moths/logging.h>
 
