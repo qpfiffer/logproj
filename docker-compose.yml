@@ -1,0 +1,21 @@
+version: "2"
+services:
+  database:
+    image: postgres:10-alpine
+    container_name: logproj-database
+    restart: always
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: logproj
+      POSTGRES_PASSWORD: localpw
+      POSTGRES_USER: logproj
+    expose:
+      - "5432"
+  web:
+    image: logproj
+    container_name: logproj
+    expose:
+      - "8666"
+    depends_on:
+      - database
