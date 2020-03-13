@@ -111,6 +111,7 @@ int lp_index_handler(const m38_http_request *request, m38_http_response *respons
 	}
 
 	greshunkel_ctext *ctext = gshkl_init_context();
+	free(current_user);
 	return m38_render_file(ctext, "./templates/index.html", response);
 }
 
@@ -329,7 +330,7 @@ int lp_api_user_login(const m38_http_request *request, m38_http_response *respon
 	return _log_user_in(email_address, response);
 }
 
-int lp_api_user_projects(const m38_http_request *request, m38_http_response *response) {
+int lp_api_user_new_project(const m38_http_request *request, m38_http_response *response) {
 	(void)request;
 	JSON_Value *root_value = json_value_init_array();
 	return _api_success(response, root_value);
@@ -345,6 +346,7 @@ int lp_api_user(const m38_http_request *request, m38_http_response *response) {
 		json_object_set_string(root_object, "id", current_user->uuid);
 	}
 
+	free(current_user);
 	return _api_success(response, root_value);
 }
 
@@ -403,6 +405,7 @@ int lp_app_new_project(const m38_http_request *request, m38_http_response *respo
 	gshkl_add_string(user_ctext, "email_address", current_user->email_address);
 	gshkl_add_string(user_ctext, "uuid", current_user->uuid);
 	gshkl_add_sub_context(ctext, "user", user_ctext);
+	free(current_user);
 
 	return m38_render_file(ctext, "./templates/new_project.html", response);
 }

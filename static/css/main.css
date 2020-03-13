@@ -64,10 +64,10 @@ input, textarea {
 
 input:focus, textarea:focus {
 	border: 1px solid #72DEC2;
-	color: #72DEC2;
+	/* color: #72DEC2; */
+	color: #333447;
 	outline: none;
 }
-
 form input {
 	margin-bottom: 1em;
 }

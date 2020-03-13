@@ -14,5 +14,5 @@ int lp_error_page(const m38_http_request *request, m38_http_response *response);
 /* API handlers */
 int lp_api_user(const m38_http_request *request, m38_http_response *response);
 int lp_api_user_login(const m38_http_request *request, m38_http_response *response);
-int lp_api_user_projects(const m38_http_request *request, m38_http_response *response);
+int lp_api_user_new_project(const m38_http_request *request, m38_http_response *response);
 int lp_api_user_register(const m38_http_request *request, m38_http_response *response);

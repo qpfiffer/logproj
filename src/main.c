@@ -23,8 +23,8 @@ void term(int signum) {
 static const m38_route all_routes[] = {
 	{"POST", "lp_api_user_login", "^/api/user/login$", 0, &lp_api_user_login, &m38_heap_cleanup},
 	{"POST", "lp_api_user_register", "^/api/user/register$", 0, &lp_api_user_register, &m38_heap_cleanup},
-	{"POST", "lp_api_user", "^/api/user$", 0, &lp_api_user, &m38_heap_cleanup},
-	{"POST", "lp_api_user_projects", "^/api/user/projects$", 0, &lp_api_user_projects, &m38_heap_cleanup},
+	{"GET", "lp_api_user", "^/api/user$", 0, &lp_api_user, &m38_heap_cleanup},
+	{"POST", "lp_api_user_new_project", "^/api/user/new_project$", 0, &lp_api_user_new_project, &m38_heap_cleanup},
 	{"GET", "lp_app_logout", "^/app/logout$", 0, &lp_app_logout, &m38_heap_cleanup},
 	{"GET", "lp_app_main", "^/app$", 0, &lp_app_main, &m38_heap_cleanup},
 	{"GET", "lp_app_new_project", "^/app/new_project$", 0, &lp_app_new_project, &m38_heap_cleanup},

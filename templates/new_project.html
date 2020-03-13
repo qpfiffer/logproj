@@ -2,21 +2,28 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<link rel="stylesheet" media="all" href="/static/css/simple-grid-min.css" />
-		<link rel="stylesheet" media="all" href="/static/css/main.css" />
-		<link rel="stylesheet" media="all" href="/static/css/dashboard.css" />
+		xXx SCREAM templates/includes/_dashboard_css.html xXx
 	<body>
 		<div id="app" class="main">
 			xXx SCREAM templates/includes/_dashboard_header.html xXx
 			<div class="container">
 				<div class="center_column">
+					<div class="faux_form">
+						<input v-model="sharedState.state.new_project_name" type="text" name="new_project_name" placeholder="Project Name" />
+						<input type="hidden" name="hidden" />
+						<div class="row">
+							<div class="col-6 buttonHolder">
+								<button v-on:click.prevent="createNewProject">Log In</button>
+							</div>
+						</div>
+						<p style="display: none;" class="error" v-show="sharedState.state.new_user_error">Error: {{sharedState.state.new_user_error}}</p>
+					</div>
 				</div>
 			</div>
 		</div>
 	</body>
-	<script type="text/javascript" src="/static/js/vue-min.js"></script>
-	<script type="text/javascript" src="/static/js/dashboard.js"></script>
+	xXx SCREAM templates/includes/_js.html xXx
+	<script type="text/javascript" src="/static/js/new_project.js"></script>
 </html>
 <!-- vim: noet ts=4 sw=4:
 -->
