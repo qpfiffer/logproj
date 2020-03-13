@@ -28,13 +28,3 @@ prerequisites.
 
 You'll have to fill in the database schema, which brings us to...
 
-# Database Setup
-
-If you're running with docker-compose, just do this:
-
-```Bash
-psql --host localhost --port 8001 --user logproj < ./sql/000_init.sql
-```
-
-Do whatever is similar if you're not doing that, ie. dump your schema into the
-database with psql and that initial file.
