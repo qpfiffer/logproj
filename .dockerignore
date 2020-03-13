@@ -1,0 +1,6 @@
+docker-sucks-please-ignore
+*.o
+*.sw[op]
+*.md
+*.markdown
+*.sh
