@@ -3,6 +3,7 @@ FROM alpine:latest
 RUN apk add --no-cache wget\
     git\
     make\
+    postgresql-client\
     automake\
     openssl-dev\
     libtool\
@@ -23,6 +24,7 @@ RUN (mkdir -p /opt/mon && cd /opt/mon && wget https://github.com/tj/mon/archive/
 
 RUN mkdir -p /app
 COPY src /app/src
+COPY sql /app/sql
 COPY rsa256.key /app/rsa256.key
 COPY rsa256.key.pub /app/rsa256.key.pub
 COPY include /app/include

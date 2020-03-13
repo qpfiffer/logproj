@@ -236,7 +236,10 @@ int get_user_pw_hash_by_email(const char email_address[static EMAIL_CHAR_SIZE], 
 	}
 
 	const size_t siz = SCRYPT_MCF_LEN;
-	strncpy(out_hash, PQgetvalue(res, 0, 0), siz);
+	if (PQntuples(res) == 1)
+		strncpy(out_hash, PQgetvalue(res, 0, 0), siz);
+	else
+		goto error;
 
 	PQclear(res);
 	_finish_pg_connection(conn);
