@@ -1,4 +1,4 @@
 #!/bin/sh
 
 cd /app
-mon ./logproj
+mon "./logproj -d postgresql://logproj:5432/logproj"

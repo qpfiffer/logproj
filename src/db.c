@@ -9,7 +9,7 @@
 #include "models.h"
 
 static PGconn *_get_pg_connection() {
-	PGconn *conn = PQconnectdb(DB_PG_CONNECTION_INFO);
+	PGconn *conn = PQconnectdb(db_conn_string);
 
 	if (PQstatus(conn) != CONNECTION_OK) {
 		m38_log_msg(LOG_ERR, "Could not connect to Postgres: %s", PQerrorMessage(conn));

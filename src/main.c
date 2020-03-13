@@ -5,9 +5,14 @@
 
 #include <38-moths/38-moths.h>
 
+#include "db.h"
 #include "views.h"
 
 int main_sock_fd;
+
+char default_db_conn_string[] = DEFAULT_DB_PG_CONNECTION_INFO;
+/* This variable is set at runtime from CLI args, or the default above: */
+char *db_conn_string = default_db_conn_string;
 
 void term(int signum) {
 	(void)signum;
@@ -29,14 +34,26 @@ static const m38_route all_routes[] = {
 };
 
 int main(int argc, char *argv[]) {
-	(void)argc;
-	(void)argv;
-
 	signal(SIGTERM, term);
 	signal(SIGINT, term);
 	signal(SIGKILL, term);
 	signal(SIGCHLD, SIG_IGN);
 
+	int i;
+	for (i = 1; i < argc; i++) {
+		const char *cur_arg = argv[i];
+		if (strncmp(cur_arg, "-d", strlen("-d")) == 0) {
+			if ((i + 1) < argc) {
+				db_conn_string = argv[++i];
+			} else {
+				m38_log_msg(LOG_ERR, "Not enough arguments to -d.");
+				return -1;
+			}
+		}
+	}
+
+	m38_log_msg(LOG_INFO, "Using database string \"%s\".", db_conn_string);
 	m38_http_serve(&main_sock_fd, 8666, 2, all_routes, sizeof(all_routes)/sizeof(all_routes[0]));
+
 	return 0;
 }

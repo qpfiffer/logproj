@@ -3,7 +3,11 @@
 #include <libpq-fe.h>
 #include "common-defs.h"
 
-#define DB_PG_CONNECTION_INFO "postgresql:///logproj"
+#define DEFAULT_DB_PG_CONNECTION_INFO "postgresql:///logproj"
+
+extern char default_db_conn_string[];
+/* This variable is set at runtime from CLI args, or the default above: */
+extern char *db_conn_string;
 
 /* User get/set methods */
 int user_exists(const char email_address[static EMAIL_CHAR_SIZE]);
