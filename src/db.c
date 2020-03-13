@@ -366,3 +366,42 @@ error:
 	_finish_pg_connection(conn);
 	return NULL;
 }
+
+int insert_new_project_for_user(const struct user *user, const char new_project_name[static 1]) {
+	PGresult *res = NULL;
+	PGconn *conn = NULL;
+
+	const char *param_values[] = {new_project_name, user->uuid};
+
+	conn = _get_pg_connection();
+	if (!conn)
+		goto error;
+
+	
+	res = PQexecParams(conn,
+					  "INSERT INTO logproj.project (name, user_id) "
+					  "VALUES ($1, $2) "
+					  "RETURNING id;",
+					  2,
+					  NULL,
+					  param_values,
+					  NULL,
+					  NULL,
+					  0);
+
+	if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+		m38_log_msg(LOG_ERR, "INSERT failed: %s", PQerrorMessage(conn));
+		goto error;
+	}
+
+	_finish_pg_connection(conn);
+
+	return 1;
+
+error:
+	if (res)
+		PQclear(res);
+	_finish_pg_connection(conn);
+
+	return 0;
+}

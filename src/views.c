@@ -331,7 +331,38 @@ int lp_api_user_login(const m38_http_request *request, m38_http_response *respon
 }
 
 int lp_api_user_new_project(const m38_http_request *request, m38_http_response *response) {
-	(void)request;
+	user *current_user = _lp_get_user_from_request(request);
+	if (!current_user) {
+		return _api_failure(response, "Unauthorized.");
+	}
+
+	const unsigned char *full_body = request->full_body;
+	JSON_Value *body_string = json_parse_string((const char *)full_body);
+	if (!body_string) {
+		char msg[] = "Could not parse JSON.";
+		m38_log_msg(LOG_ERR, msg);
+		return _api_failure(response, msg);
+	}
+
+	JSON_Object *new_project_object = parson_value_get_object(body_string);
+	if (!new_project_object) {
+		json_value_free(body_string);
+		char msg[] = "Could not get object from JSON.";
+		m38_log_msg(LOG_ERR, msg);
+		return _api_failure(response, msg);
+	}
+
+	const char *new_project_name = json_object_get_string(new_project_object, "new_project_name");
+
+	int rc = insert_new_project_for_user(current_user, new_project_name);
+	json_value_free(body_string);
+
+	if (!rc) {
+		char msg[] = "Could not create new project.";
+		m38_log_msg(LOG_ERR, msg);
+		return _api_failure(response, msg);
+	}
+
 	JSON_Value *root_value = json_value_init_array();
 	return _api_success(response, root_value);
 }
@@ -373,7 +404,7 @@ int lp_app_main(const m38_http_request *request, m38_http_response *response) {
 		for (i = 0; i < PQntuples(projects_r); i++) {
 			greshunkel_ctext *project_ctext = gshkl_init_context();
 			gshkl_add_string(project_ctext, "id", PQgetvalue(projects_r, i, 0));
-			gshkl_add_string(project_ctext, "name", PQgetvalue(projects_r, i, 0));
+			gshkl_add_string(project_ctext, "name", PQgetvalue(projects_r, i, 1));
 			gshkl_add_sub_context_to_loop(&projects_array, project_ctext);
 		}
 

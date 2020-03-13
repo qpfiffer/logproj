@@ -12,16 +12,16 @@ const app = new Vue({
 		sharedState: store,
 	},
 	methods: {
-		createNewProject: function() {
+		onSubmit: function() {
 			this.sharedState.state.errors = [];
 
 			if (!this.sharedState.state.new_project_name) {
-				this.errors.push('Project name is required.');
+				this.sharedState.state.errors.push('Project name is required.');
 				return
 			}
 
 			var data = {'new_project_name': this.sharedState.state.new_project_name, }
-			postData('/api/users/new_project', data).then((response) => {
+			postData('/api/user/new_project', data).then((response) => {
 				if (response.success == true) {
 					window.location.href = '/app';
 				} else {
@@ -30,7 +30,6 @@ const app = new Vue({
 			}, (response) => {
 				this.sharedState.state.errors = ['Something went wrong.'];
 			});
-			return this._auth('/api/user/register');
 		}
 	}
 })

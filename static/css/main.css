@@ -71,3 +71,6 @@ input:focus, textarea:focus {
 form input {
 	margin-bottom: 1em;
 }
+form.work-form {
+	padding: 1em;
+}

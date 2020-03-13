@@ -4,20 +4,28 @@
 		<meta charset="UTF-8">
 		xXx SCREAM templates/includes/_dashboard_css.html xXx
 	<body>
+		xXx SCREAM templates/includes/_dashboard_header.html xXx
 		<div id="app" class="main">
-			xXx SCREAM templates/includes/_dashboard_header.html xXx
 			<div class="container">
 				<div class="center_column">
-					<div class="faux_form">
-						<input v-model="sharedState.state.new_project_name" type="text" name="new_project_name" placeholder="Project Name" />
+					<form class="work-form" v-on:submit.prevent="onSubmit">
+						<h3>New Project</h3>
+						<div v-if="sharedState.state.errors.length">
+							<ul>
+								<li class="error" v-for="error in sharedState.state.errors">{{ error }}</li>
+							</ul>
+						</div>
+
+						<input v-model="sharedState.state.new_project_name" type="text" name="new_project_name" placeholder="Name" />
 						<input type="hidden" name="hidden" />
+
 						<div class="row">
 							<div class="col-6 buttonHolder">
-								<button v-on:click.prevent="createNewProject">Log In</button>
+								<button>Submit</button>
 							</div>
 						</div>
 						<p style="display: none;" class="error" v-show="sharedState.state.new_user_error">Error: {{sharedState.state.new_user_error}}</p>
-					</div>
+					</form>
 				</div>
 			</div>
 		</div>

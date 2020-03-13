@@ -23,3 +23,4 @@ int insert_new_session(const char email_address[static EMAIL_CHAR_SIZE], char ou
 int delete_sessions(const char session_id[static UUID_CHAR_SIZE]);
 
 PGresult *get_projects_for_user(const char *user_id);
+int insert_new_project_for_user(const struct user *user, const char new_project_name[static 1]);

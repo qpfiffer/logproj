@@ -57,7 +57,8 @@ CREATE TABLE logproj."project" (
 
     user_id uuid NOT NULL,
     CONSTRAINT "project_pkey" PRIMARY KEY ("id") NOT DEFERRABLE INITIALLY IMMEDIATE,
-    CONSTRAINT "project_user_fk" FOREIGN KEY ("user_id") REFERENCES "logproj"."user" ("id")
+    CONSTRAINT "project_user_fk" FOREIGN KEY ("user_id") REFERENCES "logproj"."user" ("id"),
+    UNIQUE (name, user_id)
 );
 
 CREATE TRIGGER set_updated_at
