@@ -33,6 +33,15 @@ static const m38_route all_routes[] = {
 	{"GET", "lp_error_page", "^/error", 0, &lp_error_page, &m38_heap_cleanup},
 };
 
+static m38_app logproj_app = {
+	.main_sock_fd = &main_sock_fd,
+	.port = 8666,
+	.num_threads = 2,
+	.routes = all_routes,
+	.num_routes = sizeof(all_routes)/sizeof(all_routes[0]),
+};
+
+
 int main(int argc, char *argv[]) {
 	signal(SIGTERM, term);
 	signal(SIGINT, term);
@@ -53,7 +62,8 @@ int main(int argc, char *argv[]) {
 	}
 
 	m38_log_msg(LOG_INFO, "Using database string \"%s\".", db_conn_string);
-	m38_http_serve(&main_sock_fd, 8666, 2, all_routes, sizeof(all_routes)/sizeof(all_routes[0]));
+	m38_set_404_handler(&logproj_app, &lp_404_page);
+	m38_http_serve(&logproj_app);
 
 	return 0;
 }

@@ -421,6 +421,12 @@ int lp_error_page(const m38_http_request *request, m38_http_response *response) 
 	return m38_render_file(ctext, "./templates/error.html", response);
 }
 
+int lp_404_page(const m38_http_request *request, m38_http_response *response) {
+	(void)request;
+	greshunkel_ctext *ctext = gshkl_init_context();
+	return m38_render_file(ctext, "./templates/404.html", response);
+}
+
 int lp_app_new_project(const m38_http_request *request, m38_http_response *response) {
 	user *current_user = _lp_get_user_from_request(request);
 	if (!current_user) {
