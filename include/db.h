@@ -11,7 +11,7 @@ extern char *db_conn_string;
 
 /* User get/set methods */
 int user_exists(const char email_address[static EMAIL_CHAR_SIZE]);
-struct user *get_user_by_email(const char email_address[static EMAIL_CHAR_SIZE]);
+struct user *_lp_get_user_by_email(const char email_address[static EMAIL_CHAR_SIZE]);
 int get_user_pw_hash_by_email(const char email_address[static EMAIL_CHAR_SIZE], char out_hash[static SCRYPT_MCF_LEN]);
 int set_user(const struct user *user);
 int insert_user(const char email_address[static EMAIL_CHAR_SIZE], const char password[static SCRYPT_MCF_LEN]);
@@ -23,4 +23,5 @@ int insert_new_session(const char email_address[static EMAIL_CHAR_SIZE], char ou
 int delete_sessions(const char session_id[static UUID_CHAR_SIZE]);
 
 PGresult *get_projects_for_user(const char *user_id);
+PGresult *_lp_get_project(const char *user_id, const char *project_id);
 int insert_new_project_for_user(const struct user *user, const char new_project_name[static 1]);

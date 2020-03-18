@@ -33,7 +33,7 @@ header h3 {
 	max-width: 100%;
 }
 .wide_column {
-	grid-column: 3 / span 12;
+	grid-column: 2 / span 4;
 	grid-row: 1;
 	max-width: 100%;
 }

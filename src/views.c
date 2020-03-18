@@ -1,104 +1,41 @@
 // vim: noet ts=4 sw=4
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
 
-#include <38-moths/parse.h>
 #include <jwt.h>
+#include <38-moths/parse.h>
 
 #include "common-defs.h"
 #include "db.h"
-#include "parson.h"
 #include "models.h"
+#include "parson.h"
+#include "utils.h"
 #include "views.h"
 
-#define JWT_ALG JWT_ALG_RS256
-#define JWT_KEY_FILENAME "./rsa256.key"
-#define JWT_PUB_KEY_FILENAME "./rsa256.key.pub"
+void _lp_setup_base_context(greshunkel_ctext *ctext, const user *current_user, bool with_projects) {
+	greshunkel_ctext *user_ctext = gshkl_init_context();
+	gshkl_add_string(user_ctext, "email_address", current_user->email_address);
+	gshkl_add_string(user_ctext, "uuid", current_user->uuid);
+	gshkl_add_sub_context(ctext, "user", user_ctext);
 
-user *_lp_get_user_from_request(const m38_http_request *request) {
-	/* Key stuff for RSA */
-	const char key_filename[] = JWT_PUB_KEY_FILENAME;
-	FILE *key_fp = NULL;
-	size_t key_len = 0;
-	unsigned char key[2048] = {0};
+	if (with_projects) {
+		greshunkel_var projects_array = gshkl_add_array(ctext, "PROJECTS");
+		PGresult *projects_r = get_projects_for_user(current_user->uuid);
+		if (projects_r) {
+			int i = 0;
+			for (i = 0; i < PQntuples(projects_r); i++) {
+				greshunkel_ctext *project_ctext = gshkl_init_context();
+				gshkl_add_string(project_ctext, "id", PQgetvalue(projects_r, i, 0));
+				gshkl_add_string(project_ctext, "name", PQgetvalue(projects_r, i, 1));
+				gshkl_add_sub_context_to_loop(&projects_array, project_ctext);
+			}
 
-	/* JWT structures */
-	jwt_t *new_jwt = NULL;
-	jwt_alg_t opt_alg = JWT_ALG;
-	jwt_valid_t *jwt_valid = NULL;
-
-	/* Cookie string data from m38 */
-	char *access_token = NULL;
-	char *cookie_string = m38_get_header_value_request(request, "Cookie");
-	if (!cookie_string)
-		goto err;
-
-	access_token = m38_get_cookie_value(cookie_string, strlen(cookie_string), "access_token");
-	free(cookie_string);
-	cookie_string = NULL;
-
-	if (!access_token)
-		goto err;
-
-	key_fp = fopen(key_filename, "r");
-	if (!key_fp) {
-		m38_log_msg(LOG_ERR, "Could not open public key file for JWT: %s", key_filename);
-		goto err;
+			PQclear(projects_r);
+		}
 	}
-
-	key_len = fread(key, 1, sizeof(key), key_fp);
-	fclose(key_fp);
-	key[key_len] = '\0';
-
-	int rc = jwt_valid_new(&jwt_valid, opt_alg);
-	if (rc || !jwt_valid) {
-		m38_log_msg(LOG_ERR, "Could not allocate new jwt verify: %i", rc);
-		goto err;
-	}
-
-	jwt_valid_set_headers(jwt_valid, 1);
-	jwt_valid_set_now(jwt_valid, time(NULL));
-
-	rc = jwt_decode(&new_jwt, access_token, key, key_len);
-	free(access_token);
-	access_token = NULL;
-	if (rc || !new_jwt) {
-		m38_log_msg(LOG_ERR, "Could not decode JWT: %i", rc);
-		goto err;
-	}
-
-	if (jwt_validate(new_jwt, jwt_valid) > 0) {
-		m38_log_msg(LOG_ERR, "JWT failed validation: %08x", jwt_valid_get_status(jwt_valid));
-		goto err;
-	}
-
-	const char *user_email = jwt_get_grant(new_jwt, "sub");
-	if (!user_email) {
-		m38_log_msg(LOG_ERR, "Could not get user email from JWT.");
-		goto err;
-	}
-
-	user *current_user = get_user_by_email(user_email);
-	if (!current_user) {
-		m38_log_msg(LOG_ERR, "Could not retrieve user from DB.");
-		goto err;
-	}
-
-	jwt_valid_free(jwt_valid);
-	jwt_free(new_jwt);
-
-	return current_user;
-
-err:
-	if (access_token)
-		free(access_token);
-	if (new_jwt)
-		jwt_free(new_jwt);
-	if (jwt_valid)
-		jwt_valid_free(jwt_valid);
-	return NULL;
 }
 
 int lp_index_handler(const m38_http_request *request, m38_http_response *response) {
@@ -163,65 +100,7 @@ int lp_app_logout(const m38_http_request *request, m38_http_response *response) 
 	return m38_render_file(ctext, "./templates/logged_out.html", response);
 }
 
-char *_lp_get_jwt(const char *email_address) {
-	if (!email_address)
-		return NULL;
-
-	jwt_t *new_jwt = NULL;
-	jwt_alg_t opt_alg = JWT_ALG;
-
-	const char key_filename[] = JWT_KEY_FILENAME;
-	FILE *key_fp = NULL;
-	size_t key_len = 0;
-	unsigned char key[2048] = {0};
-
-	key_fp = fopen(key_filename, "r");
-	if (!key_fp) {
-		m38_log_msg(LOG_ERR, "Could not open private key file for JWT: %s", key_filename);
-		goto err;
-	}
-
-	key_len = fread(key, 1, sizeof(key), key_fp);
-	fclose(key_fp);
-	key[key_len] = '\0';
-
-	int rc = jwt_new(&new_jwt);
-	if (rc || !new_jwt) {
-		m38_log_msg(LOG_ERR, "Could not create new JWT: %i", rc);
-		goto err;
-	}
-
-	rc = jwt_set_alg(new_jwt, opt_alg, key, key_len);
-	if (rc) {
-		m38_log_msg(LOG_ERR, "Could not set algorithm for JWT.");
-		goto err;
-	}
-
-	const time_t iat = time(NULL);
-	rc = jwt_add_grant_int(new_jwt, "iat", iat);
-	if (rc) {
-		m38_log_msg(LOG_ERR, "Error adding IAT.");
-		goto err;
-	}
-
-	rc = jwt_add_grant(new_jwt, "iss", "LOGPROJ");
-	rc = jwt_add_grant(new_jwt, "sub", email_address);
-	if (rc) {
-		m38_log_msg(LOG_ERR, "Error adding claim.");
-		goto err;
-	}
-
-	char *out = jwt_encode_str(new_jwt);
-	jwt_free(new_jwt);
-
-	return out;
-
-err:
-	jwt_free(new_jwt);
-	return NULL;
-}
-
-int _log_user_in(const char email_address[static EMAIL_CHAR_SIZE],
+int _lp_log_user_in(const char email_address[static EMAIL_CHAR_SIZE],
 				 m38_http_response *response) {
 	char *jwt = _lp_get_jwt(email_address);
 	if (!jwt)
@@ -283,7 +162,7 @@ int lp_api_user_register(const m38_http_request *request, m38_http_response *res
 	}
 
 	json_value_free(body_string);
-	return _log_user_in(email_address, response);
+	return _lp_log_user_in(email_address, response);
 }
 
 int lp_api_user_login(const m38_http_request *request, m38_http_response *response) {
@@ -327,7 +206,7 @@ int lp_api_user_login(const m38_http_request *request, m38_http_response *respon
 
 	json_value_free(body_string);
 
-	return _log_user_in(email_address, response);
+	return _lp_log_user_in(email_address, response);
 }
 
 int lp_api_user_new_project(const m38_http_request *request, m38_http_response *response) {
@@ -391,25 +270,7 @@ int lp_app_main(const m38_http_request *request, m38_http_response *response) {
 	}
 
 	greshunkel_ctext *ctext = gshkl_init_context();
-
-	greshunkel_ctext *user_ctext = gshkl_init_context();
-	gshkl_add_string(user_ctext, "email_address", current_user->email_address);
-	gshkl_add_string(user_ctext, "uuid", current_user->uuid);
-	gshkl_add_sub_context(ctext, "user", user_ctext);
-
-	greshunkel_var projects_array = gshkl_add_array(ctext, "PROJECTS");
-	PGresult *projects_r = get_projects_for_user(current_user->uuid);
-	if (projects_r) {
-		int i = 0;
-		for (i = 0; i < PQntuples(projects_r); i++) {
-			greshunkel_ctext *project_ctext = gshkl_init_context();
-			gshkl_add_string(project_ctext, "id", PQgetvalue(projects_r, i, 0));
-			gshkl_add_string(project_ctext, "name", PQgetvalue(projects_r, i, 1));
-			gshkl_add_sub_context_to_loop(&projects_array, project_ctext);
-		}
-
-		PQclear(projects_r);
-	}
+	_lp_setup_base_context(ctext, current_user, true);
 
 	free(current_user);
 	return m38_render_file(ctext, "./templates/dashboard.html", response);
@@ -437,12 +298,40 @@ int lp_app_new_project(const m38_http_request *request, m38_http_response *respo
 	}
 
 	greshunkel_ctext *ctext = gshkl_init_context();
-
-	greshunkel_ctext *user_ctext = gshkl_init_context();
-	gshkl_add_string(user_ctext, "email_address", current_user->email_address);
-	gshkl_add_string(user_ctext, "uuid", current_user->uuid);
-	gshkl_add_sub_context(ctext, "user", user_ctext);
-	free(current_user);
+	_lp_setup_base_context(ctext, current_user, false);
 
 	return m38_render_file(ctext, "./templates/new_project.html", response);
+}
+
+int lp_app_project(const m38_http_request *request, m38_http_response *response) {
+	char project_uuid[64] = {0};
+	strncpy(project_uuid, request->resource + request->matches[1].rm_so, sizeof(project_uuid));
+
+	user *current_user = _lp_get_user_from_request(request);
+	if (!current_user) {
+		m38_insert_custom_header(response,
+				"Location", strlen("Location"),
+				"/", strlen("/"));
+		return 302;
+	}
+
+	greshunkel_ctext *ctext = gshkl_init_context();
+	_lp_setup_base_context(ctext, current_user, false);
+
+	PGresult *projects_r = _lp_get_project(current_user->uuid, project_uuid);
+	if (projects_r) {
+		greshunkel_ctext *project_ctext = gshkl_init_context();
+		gshkl_add_string(project_ctext, "id", PQgetvalue(projects_r, 0, 0));
+		gshkl_add_string(project_ctext, "name", PQgetvalue(projects_r, 0, 1));
+		gshkl_add_sub_context(ctext, "project", project_ctext);
+
+		PQclear(projects_r);
+	} else {
+		free(current_user);
+		return 404;
+	}
+
+	free(current_user);
+
+	return m38_render_file(ctext, "./templates/app_project.html", response);
 }
