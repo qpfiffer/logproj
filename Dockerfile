@@ -12,8 +12,8 @@ RUN apk add --no-cache wget\
     libc-dev\
     postgresql-dev\
     jansson-dev
-RUN (cd /opt && git clone --depth 1 https://github.com/qpfiffer/38-Moths.git && \
-     cd 38-Moths && make && make install)
+RUN (cd /opt && git clone --depth 1 https://git.sr.ht/~qpfiffer/ThirtyEight-Moths && \
+     cd ThirtyEight-Moths && make && make install)
 RUN (cd /opt && wget https://github.com/technion/libscrypt/archive/v1.21.tar.gz && \
      tar -xf v1.21.tar.gz && cd libscrypt-1.21 && make && make install)
 RUN (cd /opt && wget https://github.com/benmcollins/libjwt/archive/v1.12.0.tar.gz && \
