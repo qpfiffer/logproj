@@ -58,13 +58,43 @@ int lp_post_index_handler(const m38_http_request *request, m38_http_response *re
 		m38_insert_custom_header(response,
 				"Location", strlen("Location"),
 				"/app", strlen("/app"));
+		free(current_user);
 		return 302;
 	}
 
 	greshunkel_ctext *ctext = gshkl_init_context();
-	gshkl_add_array(ctext, "errors");
-	free(current_user);
+	greshunkel_var errors_arr = gshkl_add_array(ctext, "errors");
 
+	if (!request->form_elements) {
+		gshkl_add_string_to_loop(&errors_arr, "No form submitted.");
+		goto err;
+	}
+
+	char *email_address = NULL, *password = NULL;
+	size_t ea_siz = 0, pw_siz = 0;
+
+	bool should_go_to_err = false;
+	email_address = sparse_dict_get(request->form_elements,
+			"email_address", strlen("email_address"), &ea_siz);
+	if (!email_address) {
+		gshkl_add_string_to_loop(&errors_arr, "Email Address is required.");
+		should_go_to_err = true;
+	}
+
+	password = sparse_dict_get(request->form_elements,
+			"password", strlen("password"), &pw_siz);
+	if (!password) {
+		gshkl_add_string_to_loop(&errors_arr, "Password is required.");
+		should_go_to_err = true;
+	}
+
+	if (should_go_to_err) {
+		goto err;
+	}
+
+	return m38_render_file(ctext, "./templates/index.html", response);
+
+err:
 	return m38_render_file(ctext, "./templates/index.html", response);
 }
 
