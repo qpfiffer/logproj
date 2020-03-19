@@ -9,7 +9,7 @@ services:
       - ./docker-sucks-please-ignore/postgres_data:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: logproj
-      POSTGRES_PASSWORD: localpw
+      POSTGRES_PASSWORD: changeme
       POSTGRES_USER: logproj
     expose:
       - "5432"
@@ -21,7 +21,7 @@ services:
     container_name: logproj
     environment:
       POSTGRES_DB: logproj
-      POSTGRES_PASSWORD: localpw
+      POSTGRES_PASSWORD: changeme
       POSTGRES_USER: logproj
     ports:
       - "8666:8666"

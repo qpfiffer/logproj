@@ -21,12 +21,12 @@ const app = new Vue({
 			this.sharedState.state.new_user_error = null;
 
 			if (!this.sharedState.state.new_user.email_address) {
-				this.errors.push('Email address required.');
+				this.sharedState.state.errors.push('Email address required.');
 				return
 			}
 
 			if (!this.sharedState.state.new_user.password) {
-				this.errors.push('Password required.');
+				this.sharedState.state.errors.push('Password required.');
 				return
 			}
 
