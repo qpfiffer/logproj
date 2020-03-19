@@ -4,6 +4,7 @@
 
 int lp_static_handler(const m38_http_request *request, m38_http_response *response);
 int lp_index_handler(const m38_http_request *request, m38_http_response *response);
+int lp_post_index_handler(const m38_http_request *request, m38_http_response *response);
 
 /* Main logged in view */
 int lp_app_logout(const m38_http_request *request, m38_http_response *response);
@@ -12,9 +13,3 @@ int lp_app_project(const m38_http_request *request, m38_http_response *response)
 int lp_app_main(const m38_http_request *request, m38_http_response *response);
 int lp_error_page(const m38_http_request *request, m38_http_response *response);
 int lp_404_page(const m38_http_request *request, m38_http_response *response);
-
-/* API handlers */
-int lp_api_user(const m38_http_request *request, m38_http_response *response);
-int lp_api_user_login(const m38_http_request *request, m38_http_response *response);
-int lp_api_user_new_project(const m38_http_request *request, m38_http_response *response);
-int lp_api_user_register(const m38_http_request *request, m38_http_response *response);

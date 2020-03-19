@@ -2,7 +2,7 @@ CFLAGS=-Werror -Wextra -Wall -O0 -g3
 INCLUDES=-pthread -I/usr/local/include/ -I./include/ `pkg-config --cflags libpq`
 LIBS=-lrt -l38moths -ljwt -lscrypt -lm `pkg-config --libs libpq`
 NAME=logproj
-COMMON_OBJ=utils.o db.o blue_midnight_wish.o parson.o views.o models.o
+COMMON_OBJ=utils.o db.o blue_midnight_wish.o parson.o api_views.o views.o models.o
 
 
 all: $(NAME)

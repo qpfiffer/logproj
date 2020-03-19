@@ -21,12 +21,20 @@ code {
 	border: 1px solid #e1e1e8;
 	border-radius: 3px;
 }
-
+#header_title a {
+	text-decoration: none;
+	color: #333447;
+}
+#header_title a:hover {
+	text-decoration: none;
+	color: #72DEC2;
+	transition: all 0.2s ease;
+}
 .buttonHolder {
 	text-align: center;
 }
 
-button {
+button, .buttonHolder input[type="submit"] {
 	height: 48px;
 	width: 180px;
 	color: #444;
@@ -37,7 +45,6 @@ button {
 	border: 1px solid #444;
 	border-radius: 4px;
 	cursor: pointer;
-	transition: all 0.3s ease;
 	outline: none;
 }
 .error {
@@ -58,7 +65,6 @@ input, textarea {
 	border: 1px solid #ccc;
 	background: #fff;
 	border-radius: .2em;
-	transition: all 0.3s;
 	width: 100%;
 }
 

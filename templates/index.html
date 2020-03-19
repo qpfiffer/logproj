@@ -17,30 +17,30 @@
 			<div class="row bloodbox">
 				<div class="col-2"></div>
 				<div class="col-8">
-					<div style="display: none;" v-if="sharedState.state.errors.length">
+					xXx UNLESS NOT @errors xXx
+					<div>
+						xXx LOOP error errors xXx
 						<ul>
-							<li class="error" v-for="error in sharedState.state.errors">{{ error }}</li>
+							<li class="error">xXx @error.text xXx</li>
 						</ul>
+						xXx BBL xXx
 					</div>
-					<form>
-						<input v-model="sharedState.state.new_user.email_address" type="text" name="email_address" placeholder="Email Address" />
-						<input v-model="sharedState.state.new_user.password" type="password" name="password" placeholder="Password"/>
+					xXx ENDLESS xXx
+					<form method="POST">
+						<input type="text" name="email_address" placeholder="Email Address" />
+						<input type="password" name="password" placeholder="Password"/>
 						<div class="row">
 							<div class="col-6 buttonHolder">
-								<button v-on:click.prevent="login">Log In</button>
+								<input type="submit" name="login" value="Log In" />
 							</div>
 							<div class="col-6 buttonHolder">
-								<button v-on:click.prevent="register">Sign Up</button>
+								<input type="submit" name="register" value="Sign Up" />
 							</div>
 						</div>
-						<p style="display: none;" class="error" v-show="sharedState.state.new_user_error">Error: {{sharedState.state.new_user_error}}</p>
 					</form>
 				</div>
-				<div class="col-2"></div>
 		</div>
 	</body>
-	xXx SCREAM templates/includes/_js.html xXx
-	<script type="text/javascript" src="/static/js/front-page.js"></script>
 </html>
 <!-- vim: noet ts=4 sw=4:
 -->
