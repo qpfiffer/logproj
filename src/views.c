@@ -15,27 +15,11 @@
 #include "utils.h"
 #include "views.h"
 
-void _lp_setup_base_context(greshunkel_ctext *ctext, const user *current_user, bool with_projects) {
+void _lp_setup_base_context(greshunkel_ctext *ctext, const user *current_user) {
 	greshunkel_ctext *user_ctext = gshkl_init_context();
 	gshkl_add_string(user_ctext, "email_address", current_user->email_address);
 	gshkl_add_string(user_ctext, "uuid", current_user->uuid);
 	gshkl_add_sub_context(ctext, "user", user_ctext);
-
-	if (with_projects) {
-		greshunkel_var projects_array = gshkl_add_array(ctext, "PROJECTS");
-		PGresult *projects_r = get_projects_for_user(current_user->uuid);
-		if (projects_r) {
-			int i = 0;
-			for (i = 0; i < PQntuples(projects_r); i++) {
-				greshunkel_ctext *project_ctext = gshkl_init_context();
-				gshkl_add_string(project_ctext, "id", PQgetvalue(projects_r, i, 0));
-				gshkl_add_string(project_ctext, "name", PQgetvalue(projects_r, i, 1));
-				gshkl_add_sub_context_to_loop(&projects_array, project_ctext);
-			}
-
-			PQclear(projects_r);
-		}
-	}
 }
 
 int lp_index_handler(const m38_http_request *request, m38_http_response *response) {
@@ -222,7 +206,21 @@ int lp_app_main(const m38_http_request *request, m38_http_response *response) {
 	}
 
 	greshunkel_ctext *ctext = gshkl_init_context();
-	_lp_setup_base_context(ctext, current_user, true);
+	_lp_setup_base_context(ctext, current_user);
+
+	greshunkel_var projects_array = gshkl_add_array(ctext, "PROJECTS");
+	PGresult *projects_r = get_projects_for_user(current_user->uuid);
+	if (projects_r) {
+		int i = 0;
+		for (i = 0; i < PQntuples(projects_r); i++) {
+			greshunkel_ctext *project_ctext = gshkl_init_context();
+			gshkl_add_string(project_ctext, "id", PQgetvalue(projects_r, i, 0));
+			gshkl_add_string(project_ctext, "name", PQgetvalue(projects_r, i, 1));
+			gshkl_add_sub_context_to_loop(&projects_array, project_ctext);
+		}
+
+		PQclear(projects_r);
+	}
 
 	free(current_user);
 	return m38_render_file(ctext, "./templates/dashboard.html", response);
@@ -235,8 +233,12 @@ int lp_error_page(const m38_http_request *request, m38_http_response *response) 
 }
 
 int lp_404_page(const m38_http_request *request, m38_http_response *response) {
-	(void)request;
 	greshunkel_ctext *ctext = gshkl_init_context();
+	user *current_user = _lp_get_user_from_request(request);
+	if (current_user) {
+		_lp_setup_base_context(ctext, current_user);
+	}
+
 	return m38_render_file(ctext, "./templates/404.html", response);
 }
 
@@ -250,7 +252,7 @@ int lp_app_new_project(const m38_http_request *request, m38_http_response *respo
 	}
 
 	greshunkel_ctext *ctext = gshkl_init_context();
-	_lp_setup_base_context(ctext, current_user, false);
+	_lp_setup_base_context(ctext, current_user);
 
 	return m38_render_file(ctext, "./templates/new_project.html", response);
 }
@@ -271,7 +273,7 @@ int lp_app_post_new_project(const m38_http_request *request, m38_http_response *
 
 	greshunkel_ctext *ctext = gshkl_init_context();
 	greshunkel_var errors_arr = gshkl_add_array(ctext, "errors");
-	_lp_setup_base_context(ctext, current_user, false);
+	_lp_setup_base_context(ctext, current_user);
 
 	if (!request->form_elements) {
 		gshkl_add_string_to_loop(&errors_arr, "No form submitted.");
@@ -320,7 +322,7 @@ int lp_app_project(const m38_http_request *request, m38_http_response *response)
 	}
 
 	greshunkel_ctext *ctext = gshkl_init_context();
-	_lp_setup_base_context(ctext, current_user, false);
+	_lp_setup_base_context(ctext, current_user);
 
 	PGresult *projects_r = _lp_get_project(current_user->uuid, project_uuid);
 	if (projects_r) {

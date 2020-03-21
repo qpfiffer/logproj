@@ -51,7 +51,6 @@ static m38_app logproj_app = {
 int main(int argc, char *argv[]) {
 	signal(SIGTERM, term);
 	signal(SIGINT, term);
-	signal(SIGKILL, term);
 	signal(SIGCHLD, SIG_IGN);
 
 	int i;
