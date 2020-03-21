@@ -5,33 +5,36 @@
 		xXx SCREAM templates/includes/_dashboard_css.html xXx
 	<body>
 		xXx SCREAM templates/includes/_dashboard_header.html xXx
-		<div id="app" class="main">
+		<div class="main">
 			<div class="container">
 				<div class="center_column">
-					<form class="work-form" v-on:submit.prevent="onSubmit">
+					<form method="POST" class="work-form">
 						<h3>New Project</h3>
-						<div v-if="sharedState.state.errors.length">
+						xXx UNLESS NOT @errors xXx
 							<ul>
-								<li class="error" v-for="error in sharedState.state.errors">{{ error }}</li>
+							xXx LOOP error errors xXx
+								<li class="error">xXx @error xXx</li>
+							xXx BBL xXx
 							</ul>
-						</div>
+						xXx ENDLESS xXx
 
-						<input v-model="sharedState.state.new_project_name" type="text" name="new_project_name" placeholder="Name" />
-						<input type="hidden" name="hidden" />
+						xXx UNLESS @new_project xXx
+						<input type="text" name="new_project" placeholder="Name" />
+						xXx ENDLESS xXx
+						xXx UNLESS NOT @new_project xXx
+						<input type="text" name="new_project" placeholder="Name" value="xXx @new_project xXx" />
+						xXx ENDLESS xXx
 
 						<div class="row">
 							<div class="col-6 buttonHolder">
 								<button>Submit</button>
 							</div>
 						</div>
-						<p style="display: none;" class="error" v-show="sharedState.state.new_user_error">Error: {{sharedState.state.new_user_error}}</p>
 					</form>
 				</div>
 			</div>
 		</div>
 	</body>
-	xXx SCREAM templates/includes/_js.html xXx
-	<script type="text/javascript" src="/static/js/new_project.js"></script>
 </html>
 <!-- vim: noet ts=4 sw=4:
 -->

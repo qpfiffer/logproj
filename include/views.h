@@ -9,6 +9,7 @@ int lp_post_index_handler(const m38_http_request *request, m38_http_response *re
 /* Main logged in view */
 int lp_app_logout(const m38_http_request *request, m38_http_response *response);
 int lp_app_new_project(const m38_http_request *request, m38_http_response *response);
+int lp_app_post_new_project(const m38_http_request *request, m38_http_response *response);
 int lp_app_project(const m38_http_request *request, m38_http_response *response);
 int lp_app_main(const m38_http_request *request, m38_http_response *response);
 int lp_error_page(const m38_http_request *request, m38_http_response *response);

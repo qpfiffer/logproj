@@ -370,7 +370,9 @@ error:
 	return NULL;
 }
 
-int insert_new_project_for_user(const struct user *user, const char new_project_name[static 1]) {
+int insert_new_project_for_user(
+		const struct user *user,
+		const char new_project_name[static 1]) {
 	PGresult *res = NULL;
 	PGconn *conn = NULL;
 

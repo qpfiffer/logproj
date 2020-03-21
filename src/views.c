@@ -255,6 +255,58 @@ int lp_app_new_project(const m38_http_request *request, m38_http_response *respo
 	return m38_render_file(ctext, "./templates/new_project.html", response);
 }
 
+int lp_app_post_new_project(const m38_http_request *request, m38_http_response *response) {
+	char *_new_project = NULL;
+	size_t np_siz = 0;
+
+	char *new_project = NULL;
+
+	user *current_user = _lp_get_user_from_request(request);
+	if (!current_user) {
+		m38_insert_custom_header(response,
+				"Location", strlen("Location"),
+				"/", strlen("/"));
+		return 302;
+	}
+
+	greshunkel_ctext *ctext = gshkl_init_context();
+	greshunkel_var errors_arr = gshkl_add_array(ctext, "errors");
+	_lp_setup_base_context(ctext, current_user, false);
+
+	if (!request->form_elements) {
+		gshkl_add_string_to_loop(&errors_arr, "No form submitted.");
+		goto err;
+	}
+
+	_new_project = sparse_dict_get(request->form_elements,
+			"new_project", strlen("new_project"), &np_siz);
+	if (np_siz <= 0) {
+		gshkl_add_string_to_loop(&errors_arr, "Project name is required.");
+		goto err;
+	}
+
+	new_project = strndup(_new_project, np_siz);
+	gshkl_add_string(ctext, "new_project", new_project);
+
+	if (!insert_new_project_for_user(current_user, new_project)) {
+		char msg[] = "Could not create new project.";
+		m38_log_msg(LOG_ERR, msg);
+		gshkl_add_string_to_loop(&errors_arr, msg);
+		goto err;
+	}
+
+	free(new_project);
+
+	m38_insert_custom_header(response,
+			"Location", strlen("Location"),
+			"/app", strlen("/app"));
+	return 302;
+
+err:
+	free(new_project);
+	return m38_render_file(ctext, "./templates/new_project.html", response);
+}
+
 int lp_app_project(const m38_http_request *request, m38_http_response *response) {
 	char project_uuid[64] = {0};
 	strncpy(project_uuid, request->resource + request->matches[1].rm_so, sizeof(project_uuid));

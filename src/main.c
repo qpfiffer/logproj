@@ -31,6 +31,7 @@ static const m38_route all_routes[] = {
 	{"GET",  "lp_app_project", "^/app/project/([a-zA-Z0-9-]+)$", 1, &lp_app_project, &m38_heap_cleanup},
 	{"GET",  "lp_app_main", "^/app$", 0, &lp_app_main, &m38_heap_cleanup},
 	{"GET",  "lp_app_new_project", "^/app/new_project$", 0, &lp_app_new_project, &m38_heap_cleanup},
+	{"POST",  "lp_app_post_new_project", "^/app/new_project$", 0, &lp_app_post_new_project, &m38_heap_cleanup},
 
 	{"GET",  "lp_index_handler", "^/$", 0, &lp_index_handler, &m38_heap_cleanup},
 	{"POST", "lp_post_index_handler", "^/$", 0, &lp_post_index_handler, &m38_heap_cleanup},
@@ -68,6 +69,7 @@ int main(int argc, char *argv[]) {
 
 	m38_log_msg(LOG_INFO, "Using database string \"%s\".", db_conn_string);
 	m38_set_404_handler(&logproj_app, &lp_404_page);
+	m38_set_404_cleanup(&logproj_app, &m38_heap_cleanup_no_check);
 	m38_http_serve(&logproj_app);
 
 	return 0;
