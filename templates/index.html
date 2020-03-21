@@ -17,16 +17,21 @@
 			<div class="row bloodbox">
 				<div class="col-2"></div>
 				<div class="col-8">
-					xXx UNLESS @errors xXx
-						xXx LOOP error errors xXx
-						<ul>
-							<li class="error">xXx @error xXx</li>
-						</ul>
-						xXx BBL xXx
-					xXx ENDLESS xXx
 					<form method="POST">
-						<input type="text" name="email_address" placeholder="Email Address" />
+						xXx UNLESS NOT @email_address xXx
+							<input type="text" name="email_address" placeholder="Email Address" value="xXx @email_address xXx" />
+						xXx ENDLESS xXx
+						xXx UNLESS @email_address xXx
+							<input type="text" name="email_address" placeholder="Email Address" />
+						xXx ENDLESS xXx
 						<input type="password" name="password" placeholder="Password"/>
+						xXx UNLESS NOT @errors xXx
+							<ul>
+							xXx LOOP error errors xXx
+								<li class="error">xXx @error xXx</li>
+							xXx BBL xXx
+							</ul>
+						xXx ENDLESS xXx
 						<div class="row">
 							<div class="col-6 buttonHolder">
 								<input type="submit" name="submit" value="Log In" />

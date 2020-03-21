@@ -6,6 +6,7 @@
 #include <time.h>
 
 #include <38-moths/parse.h>
+#include <jwt.h>
 
 #include "common-defs.h"
 #include "db.h"
@@ -52,7 +53,31 @@ int lp_index_handler(const m38_http_request *request, m38_http_response *respons
 	return m38_render_file(ctext, "./templates/index.html", response);
 }
 
+int _lp_log_user_in(
+		const char email_address[static EMAIL_CHAR_SIZE],
+		m38_http_response *response) {
+	char *jwt = _lp_get_jwt(email_address);
+	if (!jwt) {
+		m38_log_msg(LOG_ERR, "Could not generate JWT for email address.");
+		return 0;
+	}
+
+	char buf[512] = {0};
+	snprintf(buf, sizeof(buf), "access_token=%s; HttpOnly; Path=/", jwt);
+	m38_insert_custom_header(response, "Set-Cookie", strlen("Set-Cookie"), buf, strnlen(buf, sizeof(buf)));
+	jwt_free_str(jwt);
+
+	return 1;
+}
+
 int lp_post_index_handler(const m38_http_request *request, m38_http_response *response) {
+	char *_email_address = NULL, *_password = NULL, *_submit = NULL;
+	size_t ea_siz = 0, pw_siz = 0, submit_siz = 0;
+
+	char *email_address = NULL;
+	char *password = NULL;
+	char *submit = NULL;
+
 	user *current_user = _lp_get_user_from_request(request);
 	if (current_user) {
 		m38_insert_custom_header(response,
@@ -70,31 +95,102 @@ int lp_post_index_handler(const m38_http_request *request, m38_http_response *re
 		goto err;
 	}
 
-	char *email_address = NULL, *password = NULL;
-	size_t ea_siz = 0, pw_siz = 0;
-
-	bool should_go_to_err = false;
-	email_address = sparse_dict_get(request->form_elements,
+	_email_address = sparse_dict_get(request->form_elements,
 			"email_address", strlen("email_address"), &ea_siz);
-	if (!email_address) {
+	if (ea_siz <= 0) {
 		gshkl_add_string_to_loop(&errors_arr, "Email Address is required.");
-		should_go_to_err = true;
-	}
-
-	password = sparse_dict_get(request->form_elements,
-			"password", strlen("password"), &pw_siz);
-	if (!password) {
-		gshkl_add_string_to_loop(&errors_arr, "Password is required.");
-		should_go_to_err = true;
-	}
-
-	if (should_go_to_err) {
 		goto err;
 	}
+
+	email_address = strndup(_email_address, ea_siz);
+	gshkl_add_string(ctext, "email_address", email_address);
+
+	_password = sparse_dict_get(request->form_elements,
+			"password", strlen("password"), &pw_siz);
+	if (pw_siz <= 0) {
+		gshkl_add_string_to_loop(&errors_arr, "Password is required.");
+		goto err;
+	}
+
+	password = strndup(_password, pw_siz);
+
+	_submit = sparse_dict_get(request->form_elements,
+			"submit", strlen("submit"), &submit_siz);
+	if (submit_siz <= 0) {
+		gshkl_add_string_to_loop(&errors_arr, "You need to hit the submit button.");
+		goto err;
+	}
+	submit = strndup(_submit, submit_siz);
+
+	if (strncmp(submit, "Sign Up", strlen("Sign Up")) == 0) {
+		/* Check DB for existing user with that email address */
+		if (user_exists(email_address)) {
+			gshkl_add_string_to_loop(&errors_arr, "That email address is already registered.");
+			goto err;
+		}
+
+		char hash[256] = {0};
+		int rc = 0;
+		if ((rc = libscrypt_hash(hash, password, SCRYPT_N, SCRYPT_r, SCRYPT_p)) == 0) {
+			m38_log_msg(LOG_ERR, "Could not hash password for user.");
+			gshkl_add_string_to_loop(&errors_arr, "Something went wrong.");
+			goto err;
+		}
+		//m38_log_msg(LOG_INFO, "Hash: %s", hash);
+
+		if (!insert_user(email_address, hash)) {
+			m38_log_msg(LOG_ERR, "Could not create user.");
+			gshkl_add_string_to_loop(&errors_arr, "Something went wrong.");
+			goto err;
+		}
+
+		if (!_lp_log_user_in(email_address, response)) {
+			m38_log_msg(LOG_ERR, "Could not log user in.");
+			gshkl_add_string_to_loop(&errors_arr, "Something went wrong.");
+			goto err;
+		}
+	} else if (strncmp(submit, "Log In", strlen("Log In")) == 0) {
+		char hash[SCRYPT_MCF_LEN] = {0};
+		int rc = get_user_pw_hash_by_email(email_address, hash);
+		if (!rc) {
+			m38_log_msg(LOG_ERR, "No such user.");
+			gshkl_add_string_to_loop(&errors_arr, "No such user.");
+			goto err;
+		}
+
+		//m38_log_msg(LOG_INFO, "Hash: %s", hash);
+		if ((rc = libscrypt_check(hash, password)) <= 0) {
+			m38_log_msg(LOG_ERR, "Invalid password for user.");
+			gshkl_add_string_to_loop(&errors_arr, "No such user.");
+			goto err;
+		}
+
+		if (!_lp_log_user_in(email_address, response)) {
+			m38_log_msg(LOG_ERR, "Could not log user in.");
+			gshkl_add_string_to_loop(&errors_arr, "Something went wrong.");
+			goto err;
+		}
+	} else {
+		m38_log_msg(LOG_ERR, "Weird submit button value: %s", submit);
+		gshkl_add_string_to_loop(&errors_arr, "Something went wrong.");
+		goto err;
+	}
+
+	free(email_address);
+	free(password);
+	free(submit);
+
+	m38_insert_custom_header(response,
+			"Location", strlen("Location"),
+			"/app", strlen("/app"));
+	return 302;
 
 	return m38_render_file(ctext, "./templates/index.html", response);
 
 err:
+	free(email_address);
+	free(password);
+	free(submit);
 	return m38_render_file(ctext, "./templates/index.html", response);
 }
 

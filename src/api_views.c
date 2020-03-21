@@ -39,7 +39,7 @@ static int _api_success(m38_http_response *response, JSON_Value *data_value) {
 	return m38_return_raw_buffer(output, strlen(output), response);
 }
 
-int _lp_log_user_in(const char email_address[static EMAIL_CHAR_SIZE],
+int _lp_api_log_user_in(const char email_address[static EMAIL_CHAR_SIZE],
 				 m38_http_response *response) {
 	char *jwt = _lp_get_jwt(email_address);
 	if (!jwt)
@@ -51,9 +51,6 @@ int _lp_log_user_in(const char email_address[static EMAIL_CHAR_SIZE],
 	jwt_free_str(jwt);
 
 	JSON_Value *root_value = json_value_init_object();
-	JSON_Object *root_object = parson_value_get_object(root_value);
-	json_object_set_boolean(root_object, "pretend_this_is_a_jwt", 1);
-
 	return _api_success(response, root_value);
 }
 
@@ -92,7 +89,7 @@ int lp_api_user_register(const m38_http_request *request, m38_http_response *res
 		json_value_free(body_string);
 		return _api_failure(response, "Could not hash password.");
 	}
-	m38_log_msg(LOG_INFO, "Hash: %s", hash);
+	//m38_log_msg(LOG_INFO, "Hash: %s", hash);
 
 	if (!insert_user(email_address, hash)) {
 		json_value_free(body_string);
@@ -100,7 +97,7 @@ int lp_api_user_register(const m38_http_request *request, m38_http_response *res
 	}
 
 	json_value_free(body_string);
-	return _lp_log_user_in(email_address, response);
+	return _lp_api_log_user_in(email_address, response);
 }
 
 int lp_api_user_login(const m38_http_request *request, m38_http_response *response) {
@@ -127,7 +124,6 @@ int lp_api_user_login(const m38_http_request *request, m38_http_response *respon
 	char email_address[EMAIL_CHAR_SIZE] = {0};
 	strncpy(email_address, _email_address, sizeof(email_address));
 
-	/* Check DB for existing user with that email address */
 	char hash[SCRYPT_MCF_LEN] = {0};
 	int rc = get_user_pw_hash_by_email(email_address, hash);
 	if (!rc) {
@@ -136,7 +132,7 @@ int lp_api_user_login(const m38_http_request *request, m38_http_response *respon
 	}
 
 	rc = 0;
-	m38_log_msg(LOG_INFO, "Hash: %s", hash);
+	//m38_log_msg(LOG_INFO, "Hash: %s", hash);
 	if ((rc = libscrypt_check(hash, (char *)password)) <= 0) {
 		json_value_free(body_string);
 		return _api_failure(response, "Incorrect password.");
@@ -144,7 +140,7 @@ int lp_api_user_login(const m38_http_request *request, m38_http_response *respon
 
 	json_value_free(body_string);
 
-	return _lp_log_user_in(email_address, response);
+	return _lp_api_log_user_in(email_address, response);
 }
 
 int lp_api_user_new_project(const m38_http_request *request, m38_http_response *response) {

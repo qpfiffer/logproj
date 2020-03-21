@@ -1,3 +1,4 @@
+// vim: noet ts=4 sw=4
 #include <string.h>
 #include <jwt.h>
 #include <libpq-fe.h>
