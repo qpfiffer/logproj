@@ -151,3 +151,19 @@ err:
 	return NULL;
 }
 
+char *get_from_form_values(
+		struct sparse_dict *dict,
+		const char *value,
+		const size_t vlen,
+		size_t *outsiz) {
+	char *good_value = NULL;
+	char *dict_value = NULL;
+
+	dict_value = sparse_dict_get(dict, value, vlen, outsiz);
+	if ((*outsiz) <= 0) {
+		return NULL;
+	}
+
+	good_value = strndup(dict_value, *outsiz);
+	return good_value;
+}

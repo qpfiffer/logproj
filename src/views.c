@@ -55,12 +55,10 @@ int _lp_log_user_in(
 }
 
 int lp_post_index_handler(const m38_http_request *request, m38_http_response *response) {
-	char *_email_address = NULL, *_password = NULL, *_submit = NULL;
-	size_t ea_siz = 0, pw_siz = 0, submit_siz = 0;
-
 	char *email_address = NULL;
 	char *password = NULL;
 	char *submit = NULL;
+	size_t ea_siz = 0, pw_siz = 0, submit_siz = 0;
 
 	user *current_user = _lp_get_user_from_request(request);
 	if (current_user) {
@@ -79,32 +77,28 @@ int lp_post_index_handler(const m38_http_request *request, m38_http_response *re
 		goto err;
 	}
 
-	_email_address = sparse_dict_get(request->form_elements,
+	email_address = get_from_form_values(request->form_elements,
 			"email_address", strlen("email_address"), &ea_siz);
 	if (ea_siz <= 0) {
 		gshkl_add_string_to_loop(&errors_arr, "Email Address is required.");
 		goto err;
 	}
 
-	email_address = strndup(_email_address, ea_siz);
 	gshkl_add_string(ctext, "email_address", email_address);
 
-	_password = sparse_dict_get(request->form_elements,
+	password = get_from_form_values(request->form_elements,
 			"password", strlen("password"), &pw_siz);
 	if (pw_siz <= 0) {
 		gshkl_add_string_to_loop(&errors_arr, "Password is required.");
 		goto err;
 	}
 
-	password = strndup(_password, pw_siz);
-
-	_submit = sparse_dict_get(request->form_elements,
+	submit = get_from_form_values(request->form_elements,
 			"submit", strlen("submit"), &submit_siz);
 	if (submit_siz <= 0) {
 		gshkl_add_string_to_loop(&errors_arr, "You need to hit the submit button.");
 		goto err;
 	}
-	submit = strndup(_submit, submit_siz);
 
 	if (strncmp(submit, "Sign Up", strlen("Sign Up")) == 0) {
 		/* Check DB for existing user with that email address */
@@ -258,10 +252,9 @@ int lp_app_new_project(const m38_http_request *request, m38_http_response *respo
 }
 
 int lp_app_post_new_project(const m38_http_request *request, m38_http_response *response) {
-	char *_new_project = NULL;
+	char *new_project = NULL;
 	size_t np_siz = 0;
 
-	char *new_project = NULL;
 
 	user *current_user = _lp_get_user_from_request(request);
 	if (!current_user) {
@@ -280,14 +273,13 @@ int lp_app_post_new_project(const m38_http_request *request, m38_http_response *
 		goto err;
 	}
 
-	_new_project = sparse_dict_get(request->form_elements,
+	new_project = get_from_form_values(request->form_elements,
 			"new_project", strlen("new_project"), &np_siz);
 	if (np_siz <= 0) {
 		gshkl_add_string_to_loop(&errors_arr, "Project name is required.");
 		goto err;
 	}
 
-	new_project = strndup(_new_project, np_siz);
 	gshkl_add_string(ctext, "new_project", new_project);
 
 	if (!insert_new_project_for_user(current_user, new_project)) {

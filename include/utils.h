@@ -13,3 +13,6 @@ struct user *_lp_get_user_from_request(const m38_http_request *request);
 
 /* Generates a new JWT for a given email address. */
 char *_lp_get_jwt(const char *email_address);
+
+char *get_from_form_values(struct sparse_dict *dict,
+		const char *value, const size_t vlen, size_t *outsiz);
