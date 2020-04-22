@@ -333,3 +333,55 @@ int lp_app_project(const m38_http_request *request, m38_http_response *response)
 
 	return m38_render_file(ctext, "./templates/app_project.html", response);
 }
+
+int lp_app_project_keys(const m38_http_request *request, m38_http_response *response) {
+	char project_uuid[64] = {0};
+	const size_t match_len = request->matches[1].rm_eo - request->matches[1].rm_so;
+	strncpy(project_uuid, request->resource + request->matches[1].rm_so, match_len);
+
+	user *current_user = _lp_get_user_from_request(request);
+	if (!current_user) {
+		m38_insert_custom_header(response,
+				"Location", strlen("Location"),
+				"/", strlen("/"));
+		return 302;
+	}
+
+	greshunkel_ctext *ctext = gshkl_init_context();
+	_lp_setup_base_context(ctext, current_user);
+
+	PGresult *projects_r = _lp_get_project(current_user->uuid, project_uuid);
+	if (projects_r) {
+		greshunkel_ctext *project_ctext = gshkl_init_context();
+		gshkl_add_string(project_ctext, "id", PQgetvalue(projects_r, 0, 0));
+		gshkl_add_string(project_ctext, "name", PQgetvalue(projects_r, 0, 1));
+		gshkl_add_sub_context(ctext, "project", project_ctext);
+
+		PQclear(projects_r);
+	} else {
+		free(current_user);
+		return 404;
+	}
+
+	PGresult *keys_r = _lp_get_project_keys(current_user->uuid, project_uuid);
+	if (keys_r) {
+		greshunkel_var keys_array = gshkl_add_array(ctext, "KEYS");
+		int i = 0;
+		for (i = 0; i < PQntuples(keys_r); i++) {
+			greshunkel_ctext *key_ctext = gshkl_init_context();
+			gshkl_add_string(key_ctext, "id", PQgetvalue(keys_r, 0, 0));
+			gshkl_add_string(key_ctext, "key", PQgetvalue(keys_r, 0, 1));
+			gshkl_add_string(key_ctext, "created_at", PQgetvalue(keys_r, 0, 2));
+			gshkl_add_sub_context_to_loop(&keys_array, key_ctext);
+		}
+
+		PQclear(keys_r);
+	} else {
+		free(current_user);
+		return 404;
+	}
+
+	free(current_user);
+
+	return m38_render_file(ctext, "./templates/app_project_keys.html", response);
+}

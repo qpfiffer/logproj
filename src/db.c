@@ -452,3 +452,46 @@ error:
 	_finish_pg_connection(conn);
 	return NULL;
 }
+
+PGresult *_lp_get_project_keys(const char *user_id, const char *project_id) {
+	PGresult *res = NULL;
+	PGconn *conn = NULL;
+
+	const char *param_values[] = {user_id, project_id};
+
+	if (!user_id || !project_id)
+		goto error;
+
+	conn = _get_pg_connection();
+	if (!conn)
+		goto error;
+
+	
+	res = PQexecParams(conn,
+					  "SELECT api_key.id, api_key.key, api_key.created_at "
+					  "FROM logproj.api_key AS api_key "
+					  "JOIN logproj.project AS project ON project.id = api_key.project_id "
+					  "WHERE project.user_id = $1 "
+					  "AND project.id = $2;",
+					  2,
+					  NULL,
+					  param_values,
+					  NULL,
+					  NULL,
+					  0);
+
+	if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+		m38_log_msg(LOG_ERR, "SELECT failed: %s", PQerrorMessage(conn));
+		goto error;
+	}
+
+	_finish_pg_connection(conn);
+
+	return res;
+
+error:
+	if (res)
+		PQclear(res);
+	_finish_pg_connection(conn);
+	return NULL;
+}

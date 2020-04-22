@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		xXx SCREAM templates/includes/_dashboard_css.html xXx
+	<body>
+		xXx SCREAM templates/includes/_dashboard_header.html xXx
+		<div id="app" class="main">
+			<div class="container">
+				<div class="narrow_column">
+					<h3>Keys for xXx @project.name xXx</h3>
+					<ul class="project_keys">
+						xXx LOOP key KEYS xXx
+							<li class="key">
+								<div><span class="enabled"></span></div>
+								<div><code>xXx @key.key xXx</code></div>
+								<div><span>xXx @key.created_at xXx</span></div>
+							</li>
+						xXx BBL xXx
+					</ul>
+					<form id="new_key_form" method="POST">
+						<input type="submit" value="Generate new Key"></input>
+					</form>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
+<!-- vim: noet ts=4 sw=4:
+-->

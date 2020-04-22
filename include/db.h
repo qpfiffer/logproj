@@ -24,4 +24,5 @@ int delete_sessions(const char session_id[static UUID_CHAR_SIZE]);
 
 PGresult *get_projects_for_user(const char *user_id);
 PGresult *_lp_get_project(const char *user_id, const char *project_id);
+PGresult *_lp_get_project_keys(const char *user_id, const char *project_id);
 int insert_new_project_for_user(const struct user *user, const char new_project_name[static 1]);

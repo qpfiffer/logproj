@@ -80,3 +80,35 @@ form input {
 form.work-form {
 	padding: 1em;
 }
+ul.project_keys {
+	padding-left: 0;
+}
+li.key {
+	padding: 2em;
+	border-radius: 3px;
+	border: 1px solid;
+	border-color: #CCC;
+	list-style: none;
+	transition: background .3s ease;
+}
+li.key > div {
+	display: inline-block;
+	margin-right: 2em;
+}
+li.key span.enabled {
+	background: #15cd72;
+	width: 10px;
+	height: 10px;
+	border: 1px solid #fff;
+	border-radius: 100%;
+	/* background: #dfdfdf; */
+	text-indent: -9999px;
+	display: inline-block;
+	vertical-align: middle;
+	transform: scale(.999) translateZ(0);
+	-webkit-backface-visibility: hidden;
+	transition: background .3s ease;
+}
+#new_key_form {
+	width: 50%;
+}
