@@ -42,7 +42,7 @@ static const m38_route all_routes[] = {
 
 static m38_app logproj_app = {
 	.main_sock_fd = &main_sock_fd,
-	.port = 8666,
+	.port = 8667,
 	.num_threads = 2,
 	.routes = all_routes,
 	.num_routes = sizeof(all_routes)/sizeof(all_routes[0]),
@@ -62,6 +62,15 @@ int main(int argc, char *argv[]) {
 				db_conn_string = argv[++i];
 			} else {
 				m38_log_msg(LOG_ERR, "Not enough arguments to -d.");
+				return -1;
+			}
+		} else if (strncmp(cur_arg, "-c", strlen("-c")) == 0) {
+			if ((i + 1) < argc) {
+				const char *chdir_dest = argv[++i];
+				m38_log_msg(LOG_INFO, "Changing directory to %s", chdir_dest);
+				chdir(chdir_dest);
+			} else {
+				m38_log_msg(LOG_ERR, "Not enough arguments to -c.");
 				return -1;
 			}
 		}
